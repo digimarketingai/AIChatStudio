@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Studio Creator | AI 工作室建構器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.25); border-radius: 9999px; }
+    .drag-over { outline: 2px dashed #4f46e5; outline-offset: -4px; background-color: rgba(79, 70, 229, 0.05); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
+
+  <!-- Top Navbar -->
+  <header class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm sm:text-base leading-tight text-slate-900" data-i18n="appTitle">AI Studio Creator</h1>
+        <p class="text-[11px] text-slate-500 hidden sm:block" data-i18n="appSubtitle">Visual Drag & Drop OpenRouter Builder</p>
+      </div>
+    </div>
+
+    <!-- Mode Switcher -->
+    <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+      <button id="btnModeEdit" onclick="setMode('edit')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <span data-i18n="modeEdit">Builder</span>
+      </button>
+      <button id="btnModePreview" onclick="setMode('preview')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span data-i18n="modePreview">Live Preview</span>
+      </button>
+    </div>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-2">
+      <button onclick="toggleLang()" class="px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+        <span id="langLabel">繁體中文</span>
+      </button>
+      <button onclick="openExportModal()" class="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span data-i18n="btnExport">Export Code</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Visual 3-Step "How It Works" Bar -->
+  <div id="howItWorksBar" class="bg-indigo-50/70 border-b border-indigo-100 px-4 py-2 flex items-center justify-center gap-4 sm:gap-8 text-xs text-slate-700 shrink-0 overflow-x-auto">
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold text-[11px] flex items-center justify-center">1</span>
+      <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      <span class="font-medium" data-i18n="step1">Drag & Drop Blocks</span>
+    </div>
+    <span class="text-slate-300">→</span>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center">2</span>
+      <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+      <span class="font-medium" data-i18n="step2">Test with OpenRouter API</span>
+    </div>
+    <span class="text-slate-300">→</span>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[11px] flex items-center justify-center">3</span>
+      <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+      <span class="font-medium" data-i18n="step3">Export & Host on GitHub</span>
+    </div>
+  </div>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Sidebar: Components & Templates -->
+    <aside id="leftSidebar" class="w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto">
+      <div class="p-3.5 border-b border-slate-100">
+        <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5" data-i18n="templatesTitle">Quick Templates</h2>
+        <div class="grid grid-cols-1 gap-1.5">
+          <button onclick="loadTemplate('standard')" class="flex items-center gap-2.5 text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-xs font-medium text-slate-700 transition">
+            <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">✨</span>
+            <span data-i18n="tplStandard">Full AI Studio</span>
+          </button>
+          <button onclick="loadTemplate('minimal')" class="flex items-center gap-2.5 text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-xs font-medium text-slate-700 transition">
+            <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">💬</span>
+            <span data-i18n="tplMinimal">Minimal Chat</span>
+          </button>
+          <button onclick="loadTemplate('translator')" class="flex items-center gap-2.5 text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-xs font-medium text-slate-700 transition">
+            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">🌏</span>
+            <span data-i18n="tplTranslator">Bilingual Assistant</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-3.5 flex-1">
+        <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1" data-i18n="componentsTitle">Components</h2>
+        <p class="text-[11px] text-slate-500 mb-3" data-i18n="dragHint">Drag to canvas or click + to add</p>
+        <div id="paletteList" class="space-y-2"></div>
+      </div>
+    </aside>
+
+    <!-- Center Canvas -->
+    <main class="flex-1 flex flex-col bg-slate-100/80 overflow-hidden relative">
+      <!-- Theme Bar (Edit Mode) -->
+      <div id="canvasToolbar" class="h-11 border-b border-slate-200 bg-white/80 backdrop-blur px-4 flex items-center justify-between text-xs shrink-0">
+        <div class="flex items-center gap-3">
+          <span class="text-slate-500 font-medium" data-i18n="themeLabel">Export Theme:</span>
+          <select id="themeSelect" onchange="updateGlobal('theme', this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 font-medium">
+            <option value="light">Clean Light</option>
+            <option value="dark">Midnight Dark</option>
+            <option value="indigo">Cosmic Indigo</option>
+          </select>
+          <span class="text-slate-500 font-medium ml-2" data-i18n="accentLabel">Accent:</span>
+          <input type="color" id="accentPicker" value="#4f46e5" onchange="updateGlobal('accent', this.value)" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+        </div>
+        <button onclick="clearCanvas()" class="text-rose-600 hover:text-rose-700 font-medium text-xs flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span data-i18n="clearCanvas">Clear Canvas</span>
+        </button>
+      </div>
+
+      <!-- Drop Zone / Preview Area -->
+      <div id="canvasWrapper" class="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center">
+        <div id="canvasContainer" class="w-full max-w-3xl space-y-3 min-h-[420px] pb-16"
+             ondragover="handleCanvasDragOver(event)"
+             ondragleave="handleCanvasDragLeave(event)"
+             ondrop="handleCanvasDrop(event)">
+          <!-- Rendered blocks or live preview -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar: Properties Inspector -->
+    <aside id="rightSidebar" class="w-72 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto p-4">
+      <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3" data-i18n="inspectorTitle">Properties</h2>
+      <div id="inspectorContent" class="space-y-4 text-xs">
+        <!-- Dynamic Inspector -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="exportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">🚀</span>
+          <span data-i18n="exportModalTitle">Export for GitHub Pages</span>
+        </h3>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+      </div>
+      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-slate-700 space-y-1.5">
+          <p class="font-bold text-emerald-800" data-i18n="ghGuideTitle">How to host on GitHub Pages (Free):</p>
+          <p data-i18n="ghStep1">1. Click "Download index.html" below.</p>
+          <p data-i18n="ghStep2">2. Create a new GitHub repository and upload index.html.</p>
+          <p data-i18n="ghStep3">3. Go to Settings → Pages → Deploy from branch (main) → Save.</p>
+        </div>
+        <textarea id="exportCodeArea" readonly class="w-full h-64 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-emerald-300 focus:outline-none"></textarea>
+      </div>
+      <div class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50 rounded-b-2xl">
+        <button onclick="copyExportCode()" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition" data-i18n="btnCopy">Copy Code</button>
+        <button onclick="downloadExportCode()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-sm transition" data-i18n="btnDownload">Download index.html</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= I18N DICTIONARY =================
+    const i18n = {
+      en: {
+        appTitle: "AI Studio Creator",
+        appSubtitle: "Visual Drag & Drop OpenRouter Builder",
+        modeEdit: "Builder",
+        modePreview: "Live Preview",
+        btnExport: "Export Code",
+        step1: "Drag & Drop Blocks",
+        step2: "Test with OpenRouter API",
+        step3: "Export & Host on GitHub",
+        templatesTitle: "Quick Templates",
+        tplStandard: "Full AI Studio",
+        tplMinimal: "Minimal Chat",
+        tplTranslator: "Bilingual Assistant",
+        componentsTitle: "Components",
+        dragHint: "Drag to canvas or click + to add",
+        themeLabel: "Export Theme:",
+        accentLabel: "Accent:",
+        clearCanvas: "Clear Canvas",
+        inspectorTitle: "Properties",
+        exportModalTitle: "Export for GitHub Pages",
+        ghGuideTitle: "How to host on GitHub Pages (Free):",
+        ghStep1: "1. Click \"Download index.html\" below.",
+        ghStep2: "2. Create a new GitHub repository and upload index.html.",
+        ghStep3: "3. Go to Settings → Pages → Deploy from branch (main) → Save.",
+        btnCopy: "Copy Code",
+        btnDownload: "Download index.html",
+        emptyCanvas: "Drag components from the left sidebar or pick a template to start building!",
+        globalSettings: "Global Studio Settings",
+        studioNameEn: "Studio Name (EN)",
+        studioNameZh: "Studio Name (繁中)",
+        includeBilingual: "Include EN/繁中 Switcher in Export",
+        selectHint: "Click any block on the canvas to edit its text & settings.",
+        copied: "Copied to clipboard!"
+      },
+      zh: {
+        appTitle: "AI 工作室建構器",
+        appSubtitle: "視覺化拖放式 OpenRouter 應用生成器",
+        modeEdit: "編輯模式",
+        modePreview: "即時預覽",
+        btnExport: "匯出程式碼",
+        step1: "拖放功能積木",
+        step2: "連接 OpenRouter 測試",
+        step3: "匯出並部署至 GitHub",
+        templatesTitle: "快速範本",
+        tplStandard: "完整 AI 工作室",
+        tplMinimal: "極簡對話框",
+        tplTranslator: "雙語翻譯助手",
+        componentsTitle: "功能元件",
+        dragHint: "拖曳至畫布或點擊 + 新增",
+        themeLabel: "匯出主題：",
+        accentLabel: "強調色：",
+        clearCanvas: "清空畫布",
+        inspectorTitle: "屬性設定",
+        exportModalTitle: "匯出並部署至 GitHub Pages",
+        ghGuideTitle: "GitHub Pages 免費部署步驟：",
+        ghStep1: "1. 點擊下方「下載 index.html」。",
+        ghStep2: "2. 在 GitHub 建立新儲存庫 (Repository) 並上傳 index.html。",
+        ghStep3: "3. 前往 Settings → Pages → 選擇 main 分支並儲存即可上線。",
+        btnCopy: "複製程式碼",
+        btnDownload: "下載 index.html",
+        emptyCanvas: "請從左側拖曳元件到此處，或直接選擇上方的快速範本！",
+        globalSettings: "全域工作室設定",
+        studioNameEn: "工作室名稱 (英文)",
+        studioNameZh: "工作室名稱 (繁體中文)",
+        includeBilingual: "匯出成品內建 英文/繁中 切換器",
+        selectHint: "點擊畫布上的任一元件，即可在此編輯文字與參數。",
+        copied: "已複製到剪貼簿！"
+      }
+    };
+
+    // ================= COMPONENT CATALOG WITH VISUAL ICONS =================
+    const COMPONENT_TYPES = [
+      {
+        type: 'header',
+        badgeBg: 'bg-indigo-100 text-indigo-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h6"/></svg>',
+        nameEn: 'Header Banner',
+        nameZh: '標題橫幅',
+        descEn: 'App title, subtitle & language switcher',
+        descZh: '顯示工作室標題與雙語切換按鈕',
+        defaultProps: {
+          titleEn: 'My AI Studio',
+          titleZh: '我的 AI 工作室',
+          subtitleEn: 'Powered by OpenRouter',
+          subtitleZh: '由 OpenRouter API 驅動'
+        }
+      },
+      {
+        type: 'apikey',
+        badgeBg: 'bg-amber-100 text-amber-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>',
+        nameEn: 'API Key Box (BYOK)',
+        nameZh: 'API 金鑰輸入欄',
+        descEn: 'Securely saves OpenRouter key in browser',
+        descZh: '安全儲存使用者的 OpenRouter 金鑰',
+        defaultProps: {
+          labelEn: 'OpenRouter API Key',
+          labelZh: 'OpenRouter API 金鑰',
+          placeholder: 'sk-or-v1-...'
+        }
+      },
+      {
+        type: 'model',
+        badgeBg: 'bg-purple-100 text-purple-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+        nameEn: 'Model Selector',
+        nameZh: 'AI 模型選擇器',
+        descEn: 'Dropdown for GPT-4o, Claude, Gemini, etc.',
+        descZh: '讓使用者自由切換多種 AI 模型',
+        defaultProps: {
+          labelEn: 'Select AI Model',
+          labelZh: '選擇 AI 模型',
+          models: 'openai/gpt-4o-mini, anthropic/claude-3.5-sonnet, google/gemini-2.5-flash, deepseek/deepseek-chat'
+        }
+      },
+      {
+        type: 'system',
+        badgeBg: 'bg-pink-100 text-pink-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>',
+        nameEn: 'System Prompt',
+        nameZh: '系統角色設定',
+        descEn: 'Define AI personality & instructions',
+        descZh: '設定 AI 的專業角色與回答規則',
+        defaultProps: {
+          labelEn: 'System Persona',
+          labelZh: '系統提示詞 / 角色設定',
+          defaultPrompt: 'You are a helpful, concise, and intelligent AI assistant.'
+        }
+      },
+      {
+        type: 'prompts',
+        badgeBg: 'bg-cyan-100 text-cyan-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+        nameEn: 'Quick Prompt Buttons',
+        nameZh: '快速提問按鈕',
+        descEn: '1-click preset prompt chips for users',
+        descZh: '一鍵發送預設好的常用指令',
+        defaultProps: {
+          labelEn: 'Quick Prompts',
+          labelZh: '快速指令',
+          buttons: 'Summarize this, Translate to Traditional Chinese, Explain like I am 5, Write clean code'
+        }
+      },
+      {
+        type: 'params',
+        badgeBg: 'bg-orange-100 text-orange-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>',
+        nameEn: 'Temperature Slider',
+        nameZh: '溫度參數滑桿',
+        descEn: 'Control AI creativity (0.0 to 2.0)',
+        descZh: '調整 AI 回覆的創意度與隨機性',
+        defaultProps: {
+          labelEn: 'Creativity (Temperature)',
+          labelZh: '創意度 (Temperature)',
+          defaultTemp: '0.7'
+        }
+      },
+      {
+        type: 'chat',
+        badgeBg: 'bg-emerald-100 text-emerald-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>',
+        nameEn: 'AI Chat Window',
+        nameZh: 'AI 對話視窗',
+        descEn: 'Interactive chat bubbles & message box',
+        descZh: '完整的對話氣泡與訊息輸入框',
+        defaultProps: {
+          welcomeEn: 'Hello! Enter your OpenRouter API key above and start chatting.',
+          welcomeZh: '你好！請在上方輸入您的 OpenRouter API 金鑰即可開始對話。',
+          placeholderEn: 'Type your message...',
+          placeholderZh: '請輸入訊息...'
+        }
+      },
+      {
+        type: 'footer',
+        badgeBg: 'bg-slate-200 text-slate-600',
+        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        nameEn: 'Footer Credits',
+        nameZh: '頁尾資訊',
+        descEn: 'Bottom copyright or GitHub link text',
+        descZh: '頁面底部的版權或 GitHub 說明',
+        defaultProps: {
+          textEn: 'Built with AI Studio Creator • Hosted on GitHub Pages',
+          textZh: '使用 AI 工作室建構器製作 • 部署於 GitHub Pages'
+        }
+      }
+    ];
+
+    // ================= STATE =================
+    let state = {
+      lang: 'en',
+      mode: 'edit',
+      selectedId: null,
+      dragSource: null,
+      global: {
+        studioNameEn: 'My AI Studio',
+        studioNameZh: '我的 AI 工作室',
+        theme: 'light',
+        accent: '#4f46e5',
+        includeBilingual: true
+      },
+      blocks: []
+    };
+
+    let previewState = {
+      apiKey: localStorage.getItem('creator_preview_apikey') || '',
+      model: 'openai/gpt-4o-mini',
+      systemPrompt: '',
+      temperature: 0.7,
+      messages: []
+    };
+
+    // ================= INIT =================
+    function init() {
+      renderPalette();
+      loadTemplate('standard');
+      applyI18n();
+    }
+
+    function toggleLang() {
+      state.lang = state.lang === 'en' ? 'zh' : 'en';
+      document.getElementById('langLabel').textContent = state.lang === 'en' ? '繁體中文' : 'English';
+      applyI18n();
+      renderPalette();
+      renderCanvas();
+      renderInspector();
+    }
+
+    function applyI18n() {
+      const dict = i18n[state.lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      const isEdit = mode === 'edit';
+      document.getElementById('leftSidebar').classList.toggle('hidden', !isEdit);
+      document.getElementById('rightSidebar').classList.toggle('hidden', !isEdit);
+      document.getElementById('canvasToolbar').classList.toggle('hidden', !isEdit);
+
+      document.getElementById('btnModeEdit').className = isEdit
+        ? 'px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5'
+        : 'px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5';
+      document.getElementById('btnModePreview').className = !isEdit
+        ? 'px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5'
+        : 'px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5';
+
+      renderCanvas();
+    }
+
+    // ================= PALETTE & TEMPLATES =================
+    function renderPalette() {
+      const container = document.getElementById('paletteList');
+      const isEn = state.lang === 'en';
+      container.innerHTML = COMPONENT_TYPES.map(c => `
+        <div draggable="true"
+             ondragstart="handlePaletteDragStart(event, '${c.type}')"
+             class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-sm cursor-grab active:cursor-grabbing transition group">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-lg ${c.badgeBg} flex items-center justify-center shrink-0">
+              ${c.svg}
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs font-semibold text-slate-800 truncate">${isEn ? c.nameEn : c.nameZh}</div>
+              <div class="text-[10px] text-slate-500 truncate">${isEn ? c.descEn : c.descZh}</div>
+            </div>
+          </div>
+          <button onclick="addBlock('${c.type}')" title="Add" class="w-6 h-6 rounded-lg bg-white border border-slate-200 group-hover:border-indigo-300 hover:bg-indigo-600 hover:text-white text-slate-500 text-xs font-bold flex items-center justify-center shrink-0 transition ml-1.5">+</button>
+        </div>
+      `).join('');
+    }
+
+    function loadTemplate(name) {
+      state.blocks = [];
+      state.selectedId = null;
+      if (name === 'standard') {
+        ['header', 'apikey', 'model', 'system', 'prompts', 'chat', 'footer'].forEach(t => addBlock(t, false));
+      } else if (name === 'minimal') {
+        ['header', 'apikey', 'chat'].forEach(t => addBlock(t, false));
+      } else if (name === 'translator') {
+        addBlock('header', false);
+        addBlock('apikey', false);
+        addBlock('model', false);
+        addBlock('system', false);
+        const sys = state.blocks.find(b => b.type === 'system');
+        if (sys) sys.props.defaultPrompt = 'You are a professional English <-> Traditional Chinese translator. Translate accurately and naturally.';
+        addBlock('prompts', false);
+        const pr = state.blocks.find(b => b.type === 'prompts');
+        if (pr) pr.props.buttons = 'Translate to 繁體中文, Translate to English, Polish Business Tone';
+        addBlock('chat', false);
+      }
+      renderCanvas();
+      renderInspector();
+    }
+
+    function addBlock(type, shouldRender = true) {
+      const def = COMPONENT_TYPES.find(c => c.type === type);
+      if (!def) return;
+      const id = 'blk_' + Math.random().toString(36).slice(2, 9);
+      state.blocks.push({
+        id,
+        type,
+        props: JSON.parse(JSON.stringify(def.defaultProps))
+      });
+      state.selectedId = id;
+      if (shouldRender) {
+        renderCanvas();
+        renderInspector();
+      }
+    }
+
+    function clearCanvas() {
+      state.blocks = [];
+      state.selectedId = null;
+      renderCanvas();
+      renderInspector();
+    }
+
+    // ================= DRAG & DROP =================
+    function handlePaletteDragStart(e, type) {
+      state.dragSource = { kind: 'new', type };
+      e.dataTransfer.effectAllowed = 'copy';
+    }
+
+    function handleBlockDragStart(e, index) {
+      state.dragSource = { kind: 'move', index };
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleCanvasDragOver(e) {
+      e.preventDefault();
+      document.getElementById('canvasContainer').classList.add('drag-over');
+    }
+
+    function handleCanvasDragLeave(e) {
+      document.getElementById('canvasContainer').classList.remove('drag-over');
+    }
+
+    function handleCanvasDrop(e) {
+      e.preventDefault();
+      document.getElementById('canvasContainer').classList.remove('drag-over');
+      if (!state.dragSource) return;
+
+      if (state.dragSource.kind === 'new') {
+        addBlock(state.dragSource.type);
+      }
+      state.dragSource = null;
+    }
+
+    function handleBlockDrop(e, targetIndex) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('canvasContainer').classList.remove('drag-over');
+      if (!state.dragSource) return;
+
+      if (state.dragSource.kind === 'move') {
+        const from = state.dragSource.index;
+        if (from !== targetIndex) {
+          const [moved] = state.blocks.splice(from, 1);
+          state.blocks.splice(targetIndex, 0, moved);
+          renderCanvas();
+        }
+      } else if (state.dragSource.kind === 'new') {
+        const def = COMPONENT_TYPES.find(c => c.type === state.dragSource.type);
+        const id = 'blk_' + Math.random().toString(36).slice(2, 9);
+        state.blocks.splice(targetIndex, 0, {
+          id,
+          type: def.type,
+          props: JSON.parse(JSON.stringify(def.defaultProps))
+        });
+        state.selectedId = id;
+        renderCanvas();
+        renderInspector();
+      }
+      state.dragSource = null;
+    }
+
+    function moveBlock(index, dir) {
+      const target = index + dir;
+      if (target < 0 || target >= state.blocks.length) return;
+      const [moved] = state.blocks.splice(index, 1);
+      state.blocks.splice(target, 0, moved);
+      renderCanvas();
+    }
+
+    function removeBlock(id, e) {
+      e.stopPropagation();
+      state.blocks = state.blocks.filter(b => b.id !== id);
+      if (state.selectedId === id) state.selectedId = null;
+      renderCanvas();
+      renderInspector();
+    }
+
+    function selectBlock(id) {
+      state.selectedId = id;
+      renderCanvas();
+      renderInspector();
+    }
+
+    // ================= RENDER CANVAS (VISUAL WIREFRAME CARDS) =================
+    function renderCanvas() {
+      const container = document.getElementById('canvasContainer');
+      if (state.mode === 'preview') {
+        renderLivePreview(container);
+        return;
+      }
+
+      if (state.blocks.length === 0) {
+        container.innerHTML = `
+          <div class="border-2 border-dashed border-slate-300 bg-white/60 rounded-2xl p-12 text-center text-slate-500 text-sm flex flex-col items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            </div>
+            <p>${i18n[state.lang].emptyCanvas}</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = state.blocks.map((blk, idx) => {
+        const def = COMPONENT_TYPES.find(c => c.type === blk.type);
+        const isSelected = state.selectedId === blk.id;
+        return `
+          <div draggable="true"
+               ondragstart="handleBlockDragStart(event, ${idx})"
+               ondragover="event.preventDefault()"
+               ondrop="handleBlockDrop(event, ${idx})"
+               onclick="selectBlock('${blk.id}')"
+               class="rounded-2xl border ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'border-slate-200 hover:border-indigo-300 shadow-sm'} bg-white p-3.5 cursor-pointer transition group">
+            <div class="flex items-center justify-between mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="cursor-grab text-slate-400 hover:text-slate-600 text-xs">⋮⋮</span>
+                <div class="w-6 h-6 rounded-md ${def.badgeBg} flex items-center justify-center">${def.svg}</div>
+                <span class="text-xs font-bold text-slate-800">${state.lang === 'en' ? def.nameEn : def.nameZh}</span>
+              </div>
+              <div class="flex items-center gap-1 opacity-75 group-hover:opacity-100">
+                <button onclick="event.stopPropagation(); moveBlock(${idx}, -1)" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">↑</button>
+                <button onclick="event.stopPropagation(); moveBlock(${idx}, 1)" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">↓</button>
+                <button onclick="removeBlock('${blk.id}', event)" class="px-2 py-0.5 rounded-md bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white text-[11px] font-bold transition">✕</button>
+              </div>
+            </div>
+            <div class="text-xs pointer-events-none">
+              ${renderBlockPreviewSnippet(blk)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderBlockPreviewSnippet(blk) {
+      const p = blk.props;
+      const isEn = state.lang === 'en';
+      const accent = state.global.accent;
+      switch (blk.type) {
+        case 'header':
+          return `<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+            <div><div class="font-bold text-sm" style="color:${accent}">${esc(isEn ? p.titleEn : p.titleZh)}</div>
+            <div class="text-[11px] text-slate-500">${esc(isEn ? p.subtitleEn : p.subtitleZh)}</div></div>
+            <span class="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] text-slate-600">🌐 EN / 繁中</span>
+          </div>`;
+        case 'apikey':
+          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-[11px] text-slate-400 flex items-center justify-between">
+            <span>•••••••••••• ${esc(p.placeholder)}</span>
+            <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-sans font-medium">OpenRouter</span>
+          </div>`;
+        case 'model':
+          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] text-slate-700 flex items-center justify-between">
+            <span>${esc(p.models.split(',')[0])}</span>
+            <span class="text-slate-400">▾</span>
+          </div>`;
+        case 'system':
+          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] text-slate-500 italic truncate">"${esc(p.defaultPrompt)}"</div>`;
+        case 'prompts':
+          return `<div class="flex flex-wrap gap-1.5">${p.buttons.split(',').slice(0,4).map(b => `<span class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-white" style="background:${accent}">${esc(b.trim())}</span>`).join('')}</div>`;
+        case 'params':
+          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex items-center gap-3">
+            <span class="text-[11px] text-slate-600">${esc(isEn ? p.labelEn : p.labelZh)}</span>
+            <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full w-1/3 rounded-full" style="background:${accent}"></div></div>
+            <span class="text-[11px] font-bold text-slate-700">${esc(p.defaultTemp)}</span>
+          </div>`;
+        case 'chat':
+          return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
+            <div class="inline-block bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[11px] text-slate-600 shadow-sm">${esc(isEn ? p.welcomeEn : p.welcomeZh)}</div>
+            <div class="flex gap-1.5"><div class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-[10px] text-slate-400">${esc(isEn ? p.placeholderEn : p.placeholderZh)}</div><div class="px-2.5 py-1 rounded-lg text-[10px] text-white font-semibold" style="background:${accent}">Send</div></div>
+          </div>`;
+        case 'footer':
+          return `<div class="text-center text-[11px] text-slate-400 py-1">${esc(isEn ? p.textEn : p.textZh)}</div>`;
+        default: return '';
+      }
+    }
+
+    // ================= INSPECTOR =================
+    function renderInspector() {
+      const container = document.getElementById('inspectorContent');
+      const blk = state.blocks.find(b => b.id === state.selectedId);
+
+      let html = `
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+          <div class="font-bold text-indigo-600 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            ${i18n[state.lang].globalSettings}
+          </div>
+          <div>
+            <label class="block text-slate-600 font-medium mb-1">${i18n[state.lang].studioNameEn}</label>
+            <input type="text" value="${esc(state.global.studioNameEn)}" oninput="updateGlobal('studioNameEn', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />
+          </div>
+          <div>
+            <label class="block text-slate-600 font-medium mb-1">${i18n[state.lang].studioNameZh}</label>
+            <input type="text" value="${esc(state.global.studioNameZh)}" oninput="updateGlobal('studioNameZh', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer pt-1">
+            <input type="checkbox" ${state.global.includeBilingual ? 'checked' : ''} onchange="updateGlobal('includeBilingual', this.checked)" class="rounded border-slate-300 text-indigo-600" />
+            <span class="text-slate-700 font-medium">${i18n[state.lang].includeBilingual}</span>
+          </label>
+        </div>
+      `;
+
+      if (!blk) {
+        html += `<p class="text-slate-400 italic text-center pt-4">${i18n[state.lang].selectHint}</p>`;
+        container.innerHTML = html;
+        return;
+      }
+
+      const def = COMPONENT_TYPES.find(c => c.type === blk.type);
+      html += `<div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+        <div class="font-bold text-slate-800 flex items-center gap-2">
+          <div class="w-6 h-6 rounded-md ${def.badgeBg} flex items-center justify-center">${def.svg}</div>
+          ${state.lang === 'en' ? def.nameEn : def.nameZh}
+        </div>`;
+
+      Object.keys(blk.props).forEach(key => {
+        const val = blk.props[key];
+        const isLong = key.toLowerCase().includes('prompt') || key === 'models' || key === 'buttons';
+        html += `
+          <div>
+            <label class="block text-slate-600 font-medium mb-1 capitalize">${key}</label>
+            ${isLong
+              ? `<textarea rows="3" oninput="updateBlockProp('${blk.id}', '${key}', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400">${esc(val)}</textarea>`
+              : `<input type="text" value="${esc(val)}" oninput="updateBlockProp('${blk.id}', '${key}', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />`
+            }
+          </div>`;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function updateGlobal(key, val) {
+      state.global[key] = val;
+      if (state.mode === 'preview' || key === 'accent') renderCanvas();
+    }
+
+    function updateBlockProp(id, key, val) {
+      const blk = state.blocks.find(b => b.id === id);
+      if (blk) {
+        blk.props[key] = val;
+        renderCanvas();
+      }
+    }
+
+    // ================= LIVE PREVIEW (REAL OPENROUTER) =================
+    function renderLivePreview(container) {
+      const isLight = state.global.theme === 'light';
+      const cardBg = isLight ? 'bg-white border-slate-200 text-slate-900 shadow-sm' : 'bg-slate-900 border-slate-800 text-slate-100';
+      const inputBg = isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-700 text-slate-100';
+      const isEn = state.lang === 'en';
+      const accent = state.global.accent;
+
+      let html = `<div class="space-y-4 ${!isLight ? 'bg-slate-950 p-6 rounded-2xl' : ''}">`;
+
+      state.blocks.forEach(blk => {
+        const p = blk.props;
+        if (blk.type === 'header') {
+          html += `
+            <div class="p-5 rounded-2xl border ${cardBg} flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold" style="color:${accent}">${esc(isEn ? p.titleEn : p.titleZh)}</h2>
+                <p class="text-xs opacity-70 mt-0.5">${esc(isEn ? p.subtitleEn : p.subtitleZh)}</p>
+              </div>
+              ${state.global.includeBilingual ? `<button onclick="toggleLang()" class="px-3 py-1.5 rounded-xl border border-slate-300/60 text-xs font-medium">🌐 ${isEn ? '繁體中文' : 'English'}</button>` : ''}
+            </div>`;
+        } else if (blk.type === 'apikey') {
+          html += `
+            <div class="p-4 rounded-xl border ${cardBg}">
+              <label class="block text-xs font-semibold mb-1.5">🔑 ${esc(isEn ? p.labelEn : p.labelZh)}</label>
+              <input type="password" value="${esc(previewState.apiKey)}" placeholder="${esc(p.placeholder)}"
+                     oninput="previewState.apiKey=this.value; localStorage.setItem('creator_preview_apikey', this.value)"
+                     class="w-full px-3 py-2 rounded-lg border text-xs ${inputBg}" />
+            </div>`;
+        } else if (blk.type === 'model') {
+          const models = p.models.split(',').map(m => m.trim()).filter(Boolean);
+          if (!models.includes(previewState.model) && models.length) previewState.model = models[0];
+          html += `
+            <div class="p-4 rounded-xl border ${cardBg}">
+              <label class="block text-xs font-semibold mb-1.5">🧠 ${esc(isEn ? p.labelEn : p.labelZh)}</label>
+              <select onchange="previewState.model=this.value" class="w-full px-3 py-2 rounded-lg border text-xs ${inputBg}">
+                ${models.map(m => `<option value="${esc(m)}" ${m === previewState.model ? 'selected' : ''}>${esc(m)}</option>`).join('')}
+              </select>
+            </div>`;
+        } else if (blk.type === 'system') {
+          if (!previewState.systemPrompt) previewState.systemPrompt = p.defaultPrompt;
+          html += `
+            <div class="p-4 rounded-xl border ${cardBg}">
+              <label class="block text-xs font-semibold mb-1.5">🎭 ${esc(isEn ? p.labelEn : p.labelZh)}</label>
+              <textarea rows="2" oninput="previewState.systemPrompt=this.value" class="w-full px-3 py-2 rounded-lg border text-xs ${inputBg}">${esc(previewState.systemPrompt)}</textarea>
+            </div>`;
+        } else if (blk.type === 'prompts') {
+          const btns = p.buttons.split(',').map(b => b.trim()).filter(Boolean);
+          html += `
+            <div class="p-4 rounded-xl border ${cardBg}">
+              <div class="text-xs font-semibold mb-2">⚡ ${esc(isEn ? p.labelEn : p.labelZh)}</div>
+              <div class="flex flex-wrap gap-2">
+                ${btns.map(b => `<button onclick="sendPreviewMessage('${esc(b)}')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition hover:opacity-90" style="background:${accent}">${esc(b)}</button>`).join('')}
+              </div>
+            </div>`;
+        } else if (blk.type === 'params') {
+          html += `
+            <div class="p-4 rounded-xl border ${cardBg}">
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span>🎛️ ${esc(isEn ? p.labelEn : p.labelZh)}</span>
+                <span id="tempVal">${previewState.temperature}</span>
+              </div>
+              <input type="range" min="0" max="2" step="0.1" value="${previewState.temperature}"
+                     oninput="previewState.temperature=parseFloat(this.value); document.getElementById('tempVal').textContent=this.value"
+                     class="w-full" />
+            </div>`;
+        } else if (blk.type === 'chat') {
+          html += `
+            <div class="rounded-2xl border ${cardBg} overflow-hidden flex flex-col">
+              <div id="previewChatLog" class="p-4 space-y-3 h-72 overflow-y-auto text-xs">
+                <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                  ${esc(isEn ? p.welcomeEn : p.welcomeZh)}
+                </div>
+                ${previewState.messages.map(m => `
+                  <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-[85%] px-3.5 py-2.5 rounded-xl whitespace-pre-wrap ${m.role === 'user' ? 'text-white' : (isLight ? 'bg-slate-100 text-slate-800' : 'bg-slate-800 text-slate-100')}"
+                         style="${m.role === 'user' ? 'background:' + accent : ''}">${esc(m.content)}</div>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="p-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'} flex gap-2">
+                <input id="previewInput" type="text" placeholder="${esc(isEn ? p.placeholderEn : p.placeholderZh)}"
+                       onkeydown="if(event.key==='Enter') sendPreviewMessage()"
+                       class="flex-1 px-3 py-2 rounded-xl border text-xs ${inputBg}" />
+                <button onclick="sendPreviewMessage()" class="px-4 py-2 rounded-xl text-xs font-semibold text-white" style="background:${accent}">Send</button>
+              </div>
+            </div>`;
+        } else if (blk.type === 'footer') {
+          html += `<div class="text-center text-[11px] opacity-60 py-2">${esc(isEn ? p.textEn : p.textZh)}</div>`;
+        }
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+      const log = document.getElementById('previewChatLog');
+      if (log) log.scrollTop = log.scrollHeight;
+    }
+
+    async function sendPreviewMessage(presetText) {
+      const inputEl = document.getElementById('previewInput');
+      const text = presetText || (inputEl ? inputEl.value.trim() : '');
+      if (!text) return;
+      if (!previewState.apiKey) {
+        alert(state.lang === 'en' ? 'Please enter your OpenRouter API Key first!' : '請先輸入您的 OpenRouter API 金鑰！');
+        return;
+      }
+      if (inputEl && !presetText) inputEl.value = '';
+
+      previewState.messages.push({ role: 'user', content: text });
+      previewState.messages.push({ role: 'assistant', content: '⏳ ...' });
+      renderCanvas();
+
+      try {
+        const msgs = [];
+        if (previewState.systemPrompt) msgs.push({ role: 'system', content: previewState.systemPrompt });
+        previewState.messages.slice(0, -1).forEach(m => msgs.push(m));
+
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + previewState.apiKey,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.href,
+            'X-Title': state.global.studioNameEn
+          },
+          body: JSON.stringify({
+            model: previewState.model,
+            messages: msgs,
+            temperature: previewState.temperature
+          })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        previewState.messages[previewState.messages.length - 1].content = data.choices[0].message.content;
+      } catch (err) {
+        previewState.messages[previewState.messages.length - 1].content = '❌ Error: ' + err.message;
+      }
+      renderCanvas();
+    }
+
+    // ================= EXPORT STANDALONE HTML =================
+    function openExportModal() {
+      const code = generateStandaloneHTML();
+      document.getElementById('exportCodeArea').value = code;
+      document.getElementById('exportModal').classList.remove('hidden');
+      document.getElementById('exportModal').classList.add('flex');
+    }
+
+    function closeExportModal() {
+      document.getElementById('exportModal').classList.add('hidden');
+      document.getElementById('exportModal').classList.remove('flex');
+    }
+
+    function copyExportCode() {
+      const area = document.getElementById('exportCodeArea');
+      area.select();
+      navigator.clipboard.writeText(area.value);
+      alert(i18n[state.lang].copied);
+    }
+
+    function downloadExportCode() {
+      const code = document.getElementById('exportCodeArea').value;
+      const blob = new Blob([code], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      a.click();
+    }
+
+    function generateStandaloneHTML() {
+      const cfg = JSON.stringify({ global: state.global, blocks: state.blocks });
+      const isLight = state.global.theme === 'light';
+      const bodyCls = isLight ? 'bg-slate-50 text-slate-900' : (state.global.theme === 'indigo' ? 'bg-indigo-950 text-slate-100' : 'bg-slate-950 text-slate-100');
+
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${esc(state.global.studioNameEn)}</title>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+</head>
+<body class="${bodyCls} min-h-screen py-6 px-4 font-sans">
+  <div id="app" class="max-w-3xl mx-auto space-y-4"></div>
+
+  <script>
+    const CONFIG = ${cfg};
+    let lang = 'en';
+    let apiKey = localStorage.getItem('or_api_key') || '';
+    let model = '';
+    let systemPrompt = '';
+    let temperature = 0.7;
+    let messages = [];
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function toggleLang() {
+      lang = lang === 'en' ? 'zh' : 'en';
+      render();
+    }
+
+    function render() {
+      const isEn = lang === 'en';
+      const isLight = CONFIG.global.theme === 'light';
+      const card = isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/90 border-slate-800';
+      const inp = isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-700 text-slate-100';
+      const accent = CONFIG.global.accent;
+      let html = '';
+
+      CONFIG.blocks.forEach(b => {
+        const p = b.props;
+        if (b.type === 'header') {
+          html += \`<div class="p-5 rounded-2xl border \${card} flex items-center justify-between">
+            <div><h1 class="text-xl font-bold" style="color:\${accent}">\${esc(isEn ? p.titleEn : p.titleZh)}</h1>
+            <p class="text-xs opacity-70 mt-0.5">\${esc(isEn ? p.subtitleEn : p.subtitleZh)}</p></div>
+            \${CONFIG.global.includeBilingual ? \`<button onclick="toggleLang()" class="px-3 py-1.5 rounded-xl border border-slate-300/60 text-xs font-medium">🌐 \${isEn ? '繁體中文' : 'English'}</button>\` : ''}
+          </div>\`;
+        } else if (b.type === 'apikey') {
+          html += \`<div class="p-4 rounded-xl border \${card}">
+            <label class="block text-xs font-semibold mb-1.5">🔑 \${esc(isEn ? p.labelEn : p.labelZh)}</label>
+            <input type="password" value="\${esc(apiKey)}" placeholder="\${esc(p.placeholder)}"
+                   oninput="apiKey=this.value; localStorage.setItem('or_api_key', this.value)"
+                   class="w-full px-3 py-2 rounded-lg border text-xs \${inp}" />
+          </div>\`;
+        } else if (b.type === 'model') {
+          const list = p.models.split(',').map(x=>x.trim()).filter(Boolean);
+          if (!model && list.length) model = list[0];
+          html += \`<div class="p-4 rounded-xl border \${card}">
+            <label class="block text-xs font-semibold mb-1.5">🧠 \${esc(isEn ? p.labelEn : p.labelZh)}</label>
+            <select onchange="model=this.value" class="w-full px-3 py-2 rounded-lg border text-xs \${inp}">
+              \${list.map(m=>\`<option value="\${esc(m)}" \${m===model?'selected':''}>\${esc(m)}</option>\`).join('')}
+            </select>
+          </div>\`;
+        } else if (b.type === 'system') {
+          if (!systemPrompt) systemPrompt = p.defaultPrompt;
+          html += \`<div class="p-4 rounded-xl border \${card}">
+            <label class="block text-xs font-semibold mb-1.5">🎭 \${esc(isEn ? p.labelEn : p.labelZh)}</label>
+            <textarea rows="2" oninput="systemPrompt=this.value" class="w-full px-3 py-2 rounded-lg border text-xs \${inp}">\${esc(systemPrompt)}</textarea>
+          </div>\`;
+        } else if (b.type === 'prompts') {
+          const btns = p.buttons.split(',').map(x=>x.trim()).filter(Boolean);
+          html += \`<div class="p-4 rounded-xl border \${card}">
+            <div class="text-xs font-semibold mb-2">⚡ \${esc(isEn ? p.labelEn : p.labelZh)}</div>
+            <div class="flex flex-wrap gap-2">
+              \${btns.map(bt=>\`<button onclick="sendMsg('\${esc(bt)}')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="background:\${accent}">\${esc(bt)}</button>\`).join('')}
+            </div>
+          </div>\`;
+        } else if (b.type === 'params') {
+          html += \`<div class="p-4 rounded-xl border \${card}">
+            <div class="flex justify-between text-xs font-semibold mb-1"><span>🎛️ \${esc(isEn ? p.labelEn : p.labelZh)}</span><span id="tv">\${temperature}</span></div>
+            <input type="range" min="0" max="2" step="0.1" value="\${temperature}" oninput="temperature=parseFloat(this.value); document.getElementById('tv').textContent=this.value" class="w-full" />
+          </div>\`;
+        } else if (b.type === 'chat') {
+          html += \`<div class="rounded-2xl border \${card} overflow-hidden flex flex-col">
+            <div id="chatLog" class="p-4 space-y-3 h-96 overflow-y-auto text-sm">
+              <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs">\${esc(isEn ? p.welcomeEn : p.welcomeZh)}</div>
+              \${messages.map(m=>\`<div class="flex \${m.role==='user'?'justify-end':'justify-start'}">
+                <div class="max-w-[85%] px-4 py-2.5 rounded-2xl whitespace-pre-wrap text-xs \${m.role==='user'?'text-white':(isLight?'bg-slate-100 text-slate-800':'bg-slate-800')}"
+                     style="\${m.role==='user'?'background:'+accent:''}">\${esc(m.content)}</div>
+              </div>\`).join('')}
+            </div>
+            <div class="p-3 border-t \${isLight?'border-slate-200':'border-slate-800'} flex gap-2">
+              <input id="chatInp" type="text" placeholder="\${esc(isEn ? p.placeholderEn : p.placeholderZh)}"
+                     onkeydown="if(event.key==='Enter') sendMsg()" class="flex-1 px-3 py-2 rounded-xl border text-xs \${inp}" />
+              <button onclick="sendMsg()" class="px-4 py-2 rounded-xl text-xs font-semibold text-white" style="background:\${accent}">Send</button>
+            </div>
+          </div>\`;
+        } else if (b.type === 'footer') {
+          html += \`<div class="text-center text-xs opacity-60 py-2">\${esc(isEn ? p.textEn : p.textZh)}</div>\`;
+        }
+      });
+
+      document.getElementById('app').innerHTML = html;
+      const log = document.getElementById('chatLog');
+      if (log) log.scrollTop = log.scrollHeight;
+    }
+
+    async function sendMsg(preset) {
+      const inp = document.getElementById('chatInp');
+      const text = preset || (inp ? inp.value.trim() : '');
+      if (!text) return;
+      if (!apiKey) return alert(lang === 'en' ? 'Please enter your OpenRouter API Key!' : '請先輸入 OpenRouter API 金鑰！');
+      if (inp && !preset) inp.value = '';
+
+      messages.push({ role: 'user', content: text });
+      messages.push({ role: 'assistant', content: '⏳ ...' });
+      render();
+
+      try {
+        const payload = [];
+        if (systemPrompt) payload.push({ role: 'system', content: systemPrompt });
+        messages.slice(0, -1).forEach(m => payload.push(m));
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + apiKey,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.href,
+            'X-Title': CONFIG.global.studioNameEn
+          },
+          body: JSON.stringify({ model: model || 'openai/gpt-4o-mini', messages: payload, temperature })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        messages[messages.length - 1].content = data.choices[0].message.content;
+      } catch (e) {
+        messages[messages.length - 1].content = '❌ Error: ' + e.message;
+      }
+      render();
+    }
+
+    render();
+  <\/script>
+</body>
+</html>`;
+    }
+
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
