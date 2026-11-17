@@ -1,372 +1,444 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Studio Creator | AI 工作室建構器</title>
+  <title>AI 工作室建構器 | 免費模型視覺化生成器</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.25); border-radius: 9999px; }
-    .drag-over { outline: 2px dashed #4f46e5; outline-offset: -4px; background-color: rgba(79, 70, 229, 0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    .drag-over { outline: 2px dashed #4f46e5; outline-offset: -4px; background-color: rgba(79, 70, 229, 0.04); }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
 
-  <!-- Top Navbar -->
-  <header class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
+  <!-- 頂部極簡導覽列 -->
+  <header class="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-4 sm:px-6 shrink-0 z-20">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <div class="w-9 h-9 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
       </div>
       <div>
-        <h1 class="font-bold text-sm sm:text-base leading-tight text-slate-900" data-i18n="appTitle">AI Studio Creator</h1>
-        <p class="text-[11px] text-slate-500 hidden sm:block" data-i18n="appSubtitle">Visual Drag & Drop OpenRouter Builder</p>
+        <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight" data-i18n="appTitle">AI 工作室建構器</h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block" data-i18n="appSubtitle">免寫程式 • 預設使用 OpenRouter 免費模型</p>
       </div>
     </div>
 
-    <!-- Mode Switcher -->
-    <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-      <button id="btnModeEdit" onclick="setMode('edit')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        <span data-i18n="modeEdit">Builder</span>
+    <!-- 中央模式切換 -->
+    <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200/80">
+      <button id="btnModeEdit" onclick="setMode('edit')" class="px-4 py-1.5 text-xs font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5">
+        <span>🎨</span>
+        <span data-i18n="modeEdit">積木設計</span>
       </button>
-      <button id="btnModePreview" onclick="setMode('preview')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span data-i18n="modePreview">Live Preview</span>
+      <button id="btnModePreview" onclick="setMode('preview')" class="px-4 py-1.5 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-900 transition flex items-center gap-1.5">
+        <span>▶️</span>
+        <span data-i18n="modePreview">即時試用</span>
       </button>
     </div>
 
-    <!-- Right Actions -->
+    <!-- 右側按鈕 -->
     <div class="flex items-center gap-2">
-      <button onclick="toggleLang()" class="px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
-        <span id="langLabel">繁體中文</span>
+      <button onclick="toggleLang()" class="px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+        🌐 <span id="langLabel">EN</span>
       </button>
-      <button onclick="openExportModal()" class="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        <span data-i18n="btnExport">Export Code</span>
+      <button onclick="openExportModal()" class="px-4 py-1.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition flex items-center gap-1.5">
+        <span>🚀</span>
+        <span data-i18n="btnExport">匯出網頁</span>
       </button>
     </div>
   </header>
 
-  <!-- Visual 3-Step "How It Works" Bar -->
-  <div id="howItWorksBar" class="bg-indigo-50/70 border-b border-indigo-100 px-4 py-2 flex items-center justify-center gap-4 sm:gap-8 text-xs text-slate-700 shrink-0 overflow-x-auto">
-    <div class="flex items-center gap-2 shrink-0">
-      <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold text-[11px] flex items-center justify-center">1</span>
-      <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-      <span class="font-medium" data-i18n="step1">Drag & Drop Blocks</span>
+  <!-- 視覺化 3 步驟指引 -->
+  <div class="bg-white border-b border-slate-200/80 px-4 py-2 flex items-center justify-center gap-3 sm:gap-8 text-xs text-slate-600 shrink-0 overflow-x-auto">
+    <div class="flex items-center gap-1.5 shrink-0">
+      <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[11px] flex items-center justify-center">1</span>
+      <span class="font-medium" data-i18n="step1">選版型與積木</span>
     </div>
-    <span class="text-slate-300">→</span>
-    <div class="flex items-center gap-2 shrink-0">
-      <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center">2</span>
-      <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-      <span class="font-medium" data-i18n="step2">Test with OpenRouter API</span>
+    <span class="text-slate-300">➔</span>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-[11px] flex items-center justify-center">2</span>
+      <span class="font-medium" data-i18n="step2">點「即時試用」測試免費模型</span>
     </div>
-    <span class="text-slate-300">→</span>
-    <div class="flex items-center gap-2 shrink-0">
-      <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[11px] flex items-center justify-center">3</span>
-      <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-      <span class="font-medium" data-i18n="step3">Export & Host on GitHub</span>
+    <span class="text-slate-300">➔</span>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[11px] flex items-center justify-center">3</span>
+      <span class="font-medium" data-i18n="step3">匯出上傳至 GitHub</span>
     </div>
   </div>
 
-  <!-- Main Workspace -->
+  <!-- 主工作區 -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- Left Sidebar: Components & Templates -->
-    <aside id="leftSidebar" class="w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto">
-      <div class="p-3.5 border-b border-slate-100">
-        <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5" data-i18n="templatesTitle">Quick Templates</h2>
-        <div class="grid grid-cols-1 gap-1.5">
-          <button onclick="loadTemplate('standard')" class="flex items-center gap-2.5 text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-xs font-medium text-slate-700 transition">
-            <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">✨</span>
-            <span data-i18n="tplStandard">Full AI Studio</span>
+    <!-- 左側工具列：版型選擇 + 範本 + 元件積木 -->
+    <aside id="leftSidebar" class="w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto p-4 space-y-5">
+      
+      <!-- 1. UI 排版樣式選擇 -->
+      <div>
+        <h2 class="text-xs font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+          <span>📐</span> <span data-i18n="layoutTitle">選擇介面排版</span>
+        </h2>
+        <div class="grid grid-cols-3 gap-2" id="layoutPicker"></div>
+      </div>
+
+      <!-- 2. 一鍵套用範本 -->
+      <div>
+        <h2 class="text-xs font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+          <span>⚡</span> <span data-i18n="templatesTitle">快速範本</span>
+        </h2>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="loadTemplate('standard')" class="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-center transition">
+            <div class="text-lg mb-0.5">✨</div>
+            <div class="text-[11px] font-semibold text-slate-700" data-i18n="tplStandard">全能助手</div>
           </button>
-          <button onclick="loadTemplate('minimal')" class="flex items-center gap-2.5 text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-xs font-medium text-slate-700 transition">
-            <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">💬</span>
-            <span data-i18n="tplMinimal">Minimal Chat</span>
+          <button onclick="loadTemplate('minimal')" class="p-2 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-center transition">
+            <div class="text-lg mb-0.5">💬</div>
+            <div class="text-[11px] font-semibold text-slate-700" data-i18n="tplMinimal">極簡對話</div>
           </button>
-          <button onclick="loadTemplate('translator')" class="flex items-center gap-2.5 text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-xs font-medium text-slate-700 transition">
-            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">🌏</span>
-            <span data-i18n="tplTranslator">Bilingual Assistant</span>
+          <button onclick="loadTemplate('translator')" class="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-center transition">
+            <div class="text-lg mb-0.5">🌏</div>
+            <div class="text-[11px] font-semibold text-slate-700" data-i18n="tplTranslator">翻譯專家</div>
           </button>
         </div>
       </div>
 
-      <div class="p-3.5 flex-1">
-        <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1" data-i18n="componentsTitle">Components</h2>
-        <p class="text-[11px] text-slate-500 mb-3" data-i18n="dragHint">Drag to canvas or click + to add</p>
-        <div id="paletteList" class="space-y-2"></div>
+      <!-- 3. 功能積木 -->
+      <div class="flex-1">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span>🧩</span> <span data-i18n="componentsTitle">新增功能積木</span>
+          </h2>
+          <span class="text-[10px] text-slate-400" data-i18n="dragHint">點擊或拖曳</span>
+        </div>
+        <div id="paletteList" class="grid grid-cols-2 gap-2"></div>
       </div>
     </aside>
 
-    <!-- Center Canvas -->
-    <main class="flex-1 flex flex-col bg-slate-100/80 overflow-hidden relative">
-      <!-- Theme Bar (Edit Mode) -->
-      <div id="canvasToolbar" class="h-11 border-b border-slate-200 bg-white/80 backdrop-blur px-4 flex items-center justify-between text-xs shrink-0">
+    <!-- 中央視覺化畫布 -->
+    <main class="flex-1 flex flex-col bg-slate-100/70 overflow-hidden">
+      <!-- 畫布頂部簡潔設定列 -->
+      <div id="canvasToolbar" class="h-11 border-b border-slate-200/80 bg-white/80 backdrop-blur px-4 flex items-center justify-between text-xs shrink-0">
         <div class="flex items-center gap-3">
-          <span class="text-slate-500 font-medium" data-i18n="themeLabel">Export Theme:</span>
+          <span class="text-slate-500 font-medium" data-i18n="themeLabel">外觀主題：</span>
           <select id="themeSelect" onchange="updateGlobal('theme', this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 font-medium">
-            <option value="light">Clean Light</option>
-            <option value="dark">Midnight Dark</option>
-            <option value="indigo">Cosmic Indigo</option>
+            <option value="light" data-i18n="themeLight">簡約淺白</option>
+            <option value="dark" data-i18n="themeDark">質感深黑</option>
+            <option value="indigo" data-i18n="themeIndigo">科技靛藍</option>
           </select>
-          <span class="text-slate-500 font-medium ml-2" data-i18n="accentLabel">Accent:</span>
-          <input type="color" id="accentPicker" value="#4f46e5" onchange="updateGlobal('accent', this.value)" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+          <span class="text-slate-500 font-medium ml-2" data-i18n="accentLabel">主色調：</span>
+          <input type="color" id="accentPicker" value="#4f46e5" onchange="updateGlobal('accent', this.value)" class="w-6 h-6 rounded-md cursor-pointer bg-transparent border-0" />
         </div>
-        <button onclick="clearCanvas()" class="text-rose-600 hover:text-rose-700 font-medium text-xs flex items-center gap-1">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          <span data-i18n="clearCanvas">Clear Canvas</span>
+        <button onclick="clearCanvas()" class="text-rose-500 hover:text-rose-600 font-medium text-xs px-2 py-1 rounded-lg hover:bg-rose-50 transition">
+          🗑️ <span data-i18n="clearCanvas">清空重來</span>
         </button>
       </div>
 
-      <!-- Drop Zone / Preview Area -->
-      <div id="canvasWrapper" class="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center">
-        <div id="canvasContainer" class="w-full max-w-3xl space-y-3 min-h-[420px] pb-16"
+      <!-- 畫布內容區 -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center">
+        <div id="canvasContainer" class="w-full max-w-4xl min-h-[420px] pb-16 transition-all"
              ondragover="handleCanvasDragOver(event)"
              ondragleave="handleCanvasDragLeave(event)"
              ondrop="handleCanvasDrop(event)">
-          <!-- Rendered blocks or live preview -->
         </div>
       </div>
     </main>
 
-    <!-- Right Sidebar: Properties Inspector -->
+    <!-- 右側簡易屬性編輯區 -->
     <aside id="rightSidebar" class="w-72 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto p-4">
-      <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3" data-i18n="inspectorTitle">Properties</h2>
-      <div id="inspectorContent" class="space-y-4 text-xs">
-        <!-- Dynamic Inspector -->
-      </div>
+      <h2 class="text-xs font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+        <span>✏️</span> <span data-i18n="inspectorTitle">編輯內容</span>
+      </h2>
+      <div id="inspectorContent" class="space-y-4 text-xs"></div>
     </aside>
   </div>
 
-  <!-- Export Modal -->
-  <div id="exportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+  <!-- 匯出彈窗 -->
+  <div id="exportModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">🚀</span>
-          <span data-i18n="exportModalTitle">Export for GitHub Pages</span>
+          <span>🚀</span> <span data-i18n="exportModalTitle">匯出並部署至 GitHub Pages</span>
         </h3>
-        <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+        <button onclick="closeExportModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center">✕</button>
       </div>
-      <div class="p-4 overflow-y-auto space-y-4 flex-1">
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-slate-700 space-y-1.5">
-          <p class="font-bold text-emerald-800" data-i18n="ghGuideTitle">How to host on GitHub Pages (Free):</p>
-          <p data-i18n="ghStep1">1. Click "Download index.html" below.</p>
-          <p data-i18n="ghStep2">2. Create a new GitHub repository and upload index.html.</p>
-          <p data-i18n="ghStep3">3. Go to Settings → Pages → Deploy from branch (main) → Save.</p>
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <div class="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 text-xs text-slate-700 space-y-1.5">
+          <p class="font-bold text-emerald-800" data-i18n="ghGuideTitle">免費上線 3 步驟：</p>
+          <p data-i18n="ghStep1">1. 點擊下方「下載 index.html」。</p>
+          <p data-i18n="ghStep2">2. 上傳至您的 GitHub 儲存庫 (Repository)。</p>
+          <p data-i18n="ghStep3">3. 在 GitHub Settings → Pages 選擇 main 分支並儲存即可。</p>
         </div>
-        <textarea id="exportCodeArea" readonly class="w-full h-64 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-emerald-300 focus:outline-none"></textarea>
+        <textarea id="exportCodeArea" readonly class="w-full h-56 bg-slate-900 rounded-2xl p-4 font-mono text-[11px] text-emerald-300 focus:outline-none"></textarea>
       </div>
-      <div class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50 rounded-b-2xl">
-        <button onclick="copyExportCode()" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition" data-i18n="btnCopy">Copy Code</button>
-        <button onclick="downloadExportCode()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-sm transition" data-i18n="btnDownload">Download index.html</button>
+      <div class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
+        <button onclick="copyExportCode()" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition" data-i18n="btnCopy">複製程式碼</button>
+        <button onclick="downloadExportCode()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-sm transition" data-i18n="btnDownload">下載 index.html</button>
       </div>
     </div>
   </div>
 
   <script>
-    // ================= I18N DICTIONARY =================
+    // ================= 嚴選免費模型清單與規格 =================
+    const FREE_MODEL_CATALOG = [
+      { id: 'openrouter/free', scene: '日常通用／最穩定（預設）', ctx: '動態', note: '自動選擇當下可用且快速的免費模型' },
+      { id: 'nvidia/nemotron-3.5-super-vl:free', scene: '高速問答與長文', ctx: '1M', note: '回應速度極快（約 0.7–0.9 秒）' },
+      { id: 'nvidia/nemotron-3.5-lightning:free', scene: '極速對話', ctx: '1M', note: '專為低延遲快速回應最佳化' },
+      { id: 'nvidia/nemotron-3-ultra-550b-a55b:free', scene: '深度推理與邏輯', ctx: '1M', note: '550B 參數級強大推理模型' },
+      { id: 'cohere/north-mini-code:free', scene: '程式設計與除錯', ctx: '256K', note: '專精程式碼生成的輕量模型' },
+      { id: 'google/gemma-4-31b-it:free', scene: '多語言與繁中寫作', ctx: '262K', note: '中英文語意理解與翻譯表現優異' },
+      { id: 'google/gemma-4-26b-a4b-it:free', scene: '輕快全能助手', ctx: '262K', note: '速度與品質均衡的通用模型' }
+    ];
+    const DEFAULT_FREE_MODELS = FREE_MODEL_CATALOG.map(m => m.id);
+
+    // ================= 多語系字典 (預設繁體中文) =================
     const i18n = {
-      en: {
-        appTitle: "AI Studio Creator",
-        appSubtitle: "Visual Drag & Drop OpenRouter Builder",
-        modeEdit: "Builder",
-        modePreview: "Live Preview",
-        btnExport: "Export Code",
-        step1: "Drag & Drop Blocks",
-        step2: "Test with OpenRouter API",
-        step3: "Export & Host on GitHub",
-        templatesTitle: "Quick Templates",
-        tplStandard: "Full AI Studio",
-        tplMinimal: "Minimal Chat",
-        tplTranslator: "Bilingual Assistant",
-        componentsTitle: "Components",
-        dragHint: "Drag to canvas or click + to add",
-        themeLabel: "Export Theme:",
-        accentLabel: "Accent:",
-        clearCanvas: "Clear Canvas",
-        inspectorTitle: "Properties",
-        exportModalTitle: "Export for GitHub Pages",
-        ghGuideTitle: "How to host on GitHub Pages (Free):",
-        ghStep1: "1. Click \"Download index.html\" below.",
-        ghStep2: "2. Create a new GitHub repository and upload index.html.",
-        ghStep3: "3. Go to Settings → Pages → Deploy from branch (main) → Save.",
-        btnCopy: "Copy Code",
-        btnDownload: "Download index.html",
-        emptyCanvas: "Drag components from the left sidebar or pick a template to start building!",
-        globalSettings: "Global Studio Settings",
-        studioNameEn: "Studio Name (EN)",
-        studioNameZh: "Studio Name (繁中)",
-        includeBilingual: "Include EN/繁中 Switcher in Export",
-        selectHint: "Click any block on the canvas to edit its text & settings.",
-        copied: "Copied to clipboard!"
-      },
       zh: {
         appTitle: "AI 工作室建構器",
-        appSubtitle: "視覺化拖放式 OpenRouter 應用生成器",
-        modeEdit: "編輯模式",
-        modePreview: "即時預覽",
-        btnExport: "匯出程式碼",
-        step1: "拖放功能積木",
-        step2: "連接 OpenRouter 測試",
-        step3: "匯出並部署至 GitHub",
+        appSubtitle: "免寫程式 • 預設使用 OpenRouter 免費模型",
+        modeEdit: "積木設計",
+        modePreview: "即時試用",
+        btnExport: "匯出網頁",
+        step1: "選版型與積木",
+        step2: "點「即時試用」測試免費模型",
+        step3: "匯出上傳至 GitHub",
+        layoutTitle: "選擇介面排版",
         templatesTitle: "快速範本",
-        tplStandard: "完整 AI 工作室",
-        tplMinimal: "極簡對話框",
-        tplTranslator: "雙語翻譯助手",
-        componentsTitle: "功能元件",
-        dragHint: "拖曳至畫布或點擊 + 新增",
-        themeLabel: "匯出主題：",
-        accentLabel: "強調色：",
-        clearCanvas: "清空畫布",
-        inspectorTitle: "屬性設定",
+        tplStandard: "全能助手",
+        tplMinimal: "極簡對話",
+        tplTranslator: "翻譯專家",
+        componentsTitle: "新增功能積木",
+        dragHint: "點擊或拖曳",
+        themeLabel: "外觀主題：",
+        themeLight: "簡約淺白",
+        themeDark: "質感深黑",
+        themeIndigo: "科技靛藍",
+        accentLabel: "主色調：",
+        clearCanvas: "清空重來",
+        inspectorTitle: "編輯內容",
         exportModalTitle: "匯出並部署至 GitHub Pages",
-        ghGuideTitle: "GitHub Pages 免費部署步驟：",
+        ghGuideTitle: "免費上線 3 步驟：",
         ghStep1: "1. 點擊下方「下載 index.html」。",
-        ghStep2: "2. 在 GitHub 建立新儲存庫 (Repository) 並上傳 index.html。",
-        ghStep3: "3. 前往 Settings → Pages → 選擇 main 分支並儲存即可上線。",
+        ghStep2: "2. 上傳至您的 GitHub 儲存庫 (Repository)。",
+        ghStep3: "3. 在 GitHub Settings → Pages 選擇 main 分支並儲存即可。",
         btnCopy: "複製程式碼",
         btnDownload: "下載 index.html",
-        emptyCanvas: "請從左側拖曳元件到此處，或直接選擇上方的快速範本！",
-        globalSettings: "全域工作室設定",
+        emptyCanvasTitle: "目前畫布是空的",
+        emptyCanvas: "請點擊左側的功能積木拖曳到此，或直接點選下方快速範本開始建立您的 AI 工作室。",
+        emptyPreview: "畫布中尚未加入任何積木！請先切換回「積木設計」加入元件或套用範本。",
+        globalSettings: "網站名稱設定",
+        studioNameZh: "工作室名稱 (中文)",
         studioNameEn: "工作室名稱 (英文)",
-        studioNameZh: "工作室名稱 (繁體中文)",
-        includeBilingual: "匯出成品內建 英文/繁中 切換器",
-        selectHint: "點擊畫布上的任一元件，即可在此編輯文字與參數。",
-        copied: "已複製到剪貼簿！"
+        includeBilingual: "成品內建 中/英 切換按鈕",
+        selectHint: "點擊畫布上的任一積木，即可在這裡修改文字與選項。",
+        copied: "已複製程式碼！",
+        sendBtn: "發送",
+        stopBtn: "停止",
+        exportMd: "⬇ 匯出對話 (.md)"
+      },
+      en: {
+        appTitle: "AI Studio Creator",
+        appSubtitle: "No-Code Visual Builder • Free Models Only",
+        modeEdit: "Design",
+        modePreview: "Live Test",
+        btnExport: "Export",
+        step1: "Pick Layout & Blocks",
+        step2: "Test Free Model Live",
+        step3: "Export to GitHub",
+        layoutTitle: "UI Layout Style",
+        templatesTitle: "Templates",
+        tplStandard: "All-in-One",
+        tplMinimal: "Minimal",
+        tplTranslator: "Translator",
+        componentsTitle: "Add Blocks",
+        dragHint: "Click or Drag",
+        themeLabel: "Theme:",
+        themeLight: "Clean Light",
+        themeDark: "Sleek Dark",
+        themeIndigo: "Tech Indigo",
+        accentLabel: "Color:",
+        clearCanvas: "Clear",
+        inspectorTitle: "Edit Block",
+        exportModalTitle: "Export for GitHub Pages",
+        ghGuideTitle: "3 Steps to Go Live:",
+        ghStep1: "1. Click \"Download index.html\" below.",
+        ghStep2: "2. Upload to your GitHub Repository.",
+        ghStep3: "3. Enable GitHub Pages (main branch) in Settings.",
+        btnCopy: "Copy Code",
+        btnDownload: "Download index.html",
+        emptyCanvasTitle: "Canvas is Empty",
+        emptyCanvas: "Click or drag blocks from the left panel, or pick a quick template below to start.",
+        emptyPreview: "No blocks on canvas yet! Switch back to Design mode to add blocks or load a template.",
+        globalSettings: "Studio Name",
+        studioNameZh: "Name (繁體中文)",
+        studioNameEn: "Name (English)",
+        includeBilingual: "Include CN/EN Switcher",
+        selectHint: "Click any block on the canvas to edit its text & options.",
+        copied: "Copied to clipboard!",
+        sendBtn: "Send",
+        stopBtn: "Stop",
+        exportMd: "⬇ Export Chat (.md)"
       }
     };
 
-    // ================= COMPONENT CATALOG WITH VISUAL ICONS =================
+    // ================= 3 種視覺化排版樣式 =================
+    const LAYOUT_OPTIONS = [
+      {
+        id: 'single',
+        nameZh: '經典單欄',
+        nameEn: 'Single',
+        svg: `<svg class="w-8 h-6 mx-auto mb-1" viewBox="0 0 36 26" fill="none"><rect x="6" y="2" width="24" height="4" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="6" y="8" width="24" height="5" rx="1.5" fill="currentColor" opacity="0.3"/><rect x="6" y="15" width="24" height="9" rx="1.5" fill="currentColor" opacity="0.5"/></svg>`
+      },
+      {
+        id: 'split',
+        nameZh: '左右雙欄',
+        nameEn: 'Split',
+        svg: `<svg class="w-8 h-6 mx-auto mb-1" viewBox="0 0 36 26" fill="none"><rect x="2" y="2" width="32" height="4" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="2" y="8" width="11" height="16" rx="1.5" fill="currentColor" opacity="0.35"/><rect x="15" y="8" width="19" height="16" rx="1.5" fill="currentColor" opacity="0.55"/></svg>`
+      },
+      {
+        id: 'card',
+        nameZh: '精緻卡片',
+        nameEn: 'Card',
+        svg: `<svg class="w-8 h-6 mx-auto mb-1" viewBox="0 0 36 26" fill="none"><rect x="4" y="2" width="28" height="22" rx="3" stroke="currentColor" stroke-width="1.5" opacity="0.5"/><rect x="7" y="5" width="22" height="4" rx="1" fill="currentColor" opacity="0.8"/><rect x="7" y="11" width="22" height="10" rx="1" fill="currentColor" opacity="0.3"/></svg>`
+      }
+    ];
+
+    // ================= 視覺化元件庫 (含空白積木) =================
     const COMPONENT_TYPES = [
       {
         type: 'header',
-        badgeBg: 'bg-indigo-100 text-indigo-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h6"/></svg>',
-        nameEn: 'Header Banner',
+        icon: '🏷️',
+        color: 'bg-indigo-50 text-indigo-600 border-indigo-200',
         nameZh: '標題橫幅',
-        descEn: 'App title, subtitle & language switcher',
-        descZh: '顯示工作室標題與雙語切換按鈕',
+        nameEn: 'Header',
         defaultProps: {
-          titleEn: 'My AI Studio',
-          titleZh: '我的 AI 工作室',
-          subtitleEn: 'Powered by OpenRouter',
-          subtitleZh: '由 OpenRouter API 驅動'
+          titleZh: 'AI Chat Studio 免費工作室',
+          titleEn: 'AI Chat Studio (Free)',
+          subtitleZh: '由 OpenRouter 免費模型驅動',
+          subtitleEn: 'Powered by OpenRouter Free Models'
         }
       },
       {
         type: 'apikey',
-        badgeBg: 'bg-amber-100 text-amber-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>',
-        nameEn: 'API Key Box (BYOK)',
-        nameZh: 'API 金鑰輸入欄',
-        descEn: 'Securely saves OpenRouter key in browser',
-        descZh: '安全儲存使用者的 OpenRouter 金鑰',
+        icon: '🔑',
+        color: 'bg-amber-50 text-amber-600 border-amber-200',
+        nameZh: 'API 金鑰',
+        nameEn: 'API Key',
         defaultProps: {
-          labelEn: 'OpenRouter API Key',
           labelZh: 'OpenRouter API 金鑰',
+          labelEn: 'OpenRouter API Key',
           placeholder: 'sk-or-v1-...'
         }
       },
       {
         type: 'model',
-        badgeBg: 'bg-purple-100 text-purple-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
-        nameEn: 'Model Selector',
-        nameZh: 'AI 模型選擇器',
-        descEn: 'Dropdown for GPT-4o, Claude, Gemini, etc.',
-        descZh: '讓使用者自由切換多種 AI 模型',
+        icon: '🆓',
+        color: 'bg-purple-50 text-purple-600 border-purple-200',
+        nameZh: '免費模型',
+        nameEn: 'Free Model',
         defaultProps: {
-          labelEn: 'Select AI Model',
-          labelZh: '選擇 AI 模型',
-          models: 'openai/gpt-4o-mini, anthropic/claude-3.5-sonnet, google/gemini-2.5-flash, deepseek/deepseek-chat'
+          labelZh: '選擇模型 (免費且快速)',
+          labelEn: 'Model (Free & Fast)',
+          models: DEFAULT_FREE_MODELS.join(', ')
+        }
+      },
+      {
+        type: 'kb',
+        icon: '📄',
+        color: 'bg-teal-50 text-teal-600 border-teal-200',
+        nameZh: '知識庫',
+        nameEn: 'Knowledge',
+        defaultProps: {
+          labelZh: '知識庫 (選填 .txt / .md)',
+          labelEn: 'Knowledge Base (Optional)'
         }
       },
       {
         type: 'system',
-        badgeBg: 'bg-pink-100 text-pink-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>',
-        nameEn: 'System Prompt',
-        nameZh: '系統角色設定',
-        descEn: 'Define AI personality & instructions',
-        descZh: '設定 AI 的專業角色與回答規則',
+        icon: '🎭',
+        color: 'bg-pink-50 text-pink-600 border-pink-200',
+        nameZh: '角色設定',
+        nameEn: 'Persona',
         defaultProps: {
-          labelEn: 'System Persona',
-          labelZh: '系統提示詞 / 角色設定',
-          defaultPrompt: 'You are a helpful, concise, and intelligent AI assistant.'
+          labelZh: '系統提示詞 (System Prompt)',
+          labelEn: 'System Prompt',
+          defaultPrompt: '你是一個專業、友善且回答精簡的繁體中文 AI 助手。'
         }
       },
       {
         type: 'prompts',
-        badgeBg: 'bg-cyan-100 text-cyan-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
-        nameEn: 'Quick Prompt Buttons',
-        nameZh: '快速提問按鈕',
-        descEn: '1-click preset prompt chips for users',
-        descZh: '一鍵發送預設好的常用指令',
+        icon: '⚡',
+        color: 'bg-cyan-50 text-cyan-600 border-cyan-200',
+        nameZh: '快速指令',
+        nameEn: 'Quick Chips',
         defaultProps: {
+          labelZh: '常用快捷指令',
           labelEn: 'Quick Prompts',
-          labelZh: '快速指令',
-          buttons: 'Summarize this, Translate to Traditional Chinese, Explain like I am 5, Write clean code'
+          buttons: '幫我總結重點, 翻譯成英文, 用簡單的話解釋, 幫我潤飾這段文字'
         }
       },
       {
         type: 'params',
-        badgeBg: 'bg-orange-100 text-orange-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>',
-        nameEn: 'Temperature Slider',
-        nameZh: '溫度參數滑桿',
-        descEn: 'Control AI creativity (0.0 to 2.0)',
-        descZh: '調整 AI 回覆的創意度與隨機性',
+        icon: '🎛️',
+        color: 'bg-orange-50 text-orange-600 border-orange-200',
+        nameZh: '創意滑桿',
+        nameEn: 'Temperature',
         defaultProps: {
-          labelEn: 'Creativity (Temperature)',
-          labelZh: '創意度 (Temperature)',
+          labelZh: '溫度 (Temperature)',
+          labelEn: 'Temperature',
           defaultTemp: '0.7'
         }
       },
       {
         type: 'chat',
-        badgeBg: 'bg-emerald-100 text-emerald-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>',
-        nameEn: 'AI Chat Window',
-        nameZh: 'AI 對話視窗',
-        descEn: 'Interactive chat bubbles & message box',
-        descZh: '完整的對話氣泡與訊息輸入框',
+        icon: '💬',
+        color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+        nameZh: '對話視窗',
+        nameEn: 'Chat Box',
         defaultProps: {
-          welcomeEn: 'Hello! Enter your OpenRouter API key above and start chatting.',
-          welcomeZh: '你好！請在上方輸入您的 OpenRouter API 金鑰即可開始對話。',
-          placeholderEn: 'Type your message...',
-          placeholderZh: '請輸入訊息...'
+          welcomeZh: '你好！已預設使用免費模型 (openrouter/free)，請輸入金鑰即可開始對話。',
+          welcomeEn: 'Hello! Using free model (openrouter/free). Enter your API key to chat.',
+          placeholderZh: '請輸入訊息...',
+          placeholderEn: 'Type a message...'
+        }
+      },
+      {
+        type: 'empty',
+        icon: '⬜',
+        color: 'bg-slate-50 text-slate-600 border-slate-200',
+        nameZh: '空白區塊',
+        nameEn: 'Empty Box',
+        defaultProps: {
+          titleZh: '',
+          titleEn: '',
+          contentZh: '',
+          contentEn: '',
+          height: '24'
         }
       },
       {
         type: 'footer',
-        badgeBg: 'bg-slate-200 text-slate-600',
-        svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-        nameEn: 'Footer Credits',
+        icon: '📌',
+        color: 'bg-slate-100 text-slate-600 border-slate-200',
         nameZh: '頁尾資訊',
-        descEn: 'Bottom copyright or GitHub link text',
-        descZh: '頁面底部的版權或 GitHub 說明',
+        nameEn: 'Footer',
         defaultProps: {
-          textEn: 'Built with AI Studio Creator • Hosted on GitHub Pages',
-          textZh: '使用 AI 工作室建構器製作 • 部署於 GitHub Pages'
+          textZh: '由 OpenRouter API 驅動 (瀏覽器端運作) • 請勿在 :free 免費模型輸入敏感資料',
+          textEn: 'Powered by OpenRouter API (Client-Side) • Avoid sharing sensitive data on :free models'
         }
       }
     ];
 
-    // ================= STATE =================
+    // ================= 狀態管理 (起始為空白畫布) =================
     let state = {
-      lang: 'en',
+      lang: 'zh',
       mode: 'edit',
       selectedId: null,
       dragSource: null,
       global: {
-        studioNameEn: 'My AI Studio',
-        studioNameZh: '我的 AI 工作室',
+        studioNameZh: 'AI Chat Studio 免費工作室',
+        studioNameEn: 'AI Chat Studio (Free)',
+        layout: 'split',
         theme: 'light',
         accent: '#4f46e5',
         includeBilingual: true
@@ -376,23 +448,37 @@
 
     let previewState = {
       apiKey: localStorage.getItem('creator_preview_apikey') || '',
-      model: 'openai/gpt-4o-mini',
+      model: 'openrouter/free',
       systemPrompt: '',
+      kbText: '',
+      kbName: '',
       temperature: 0.7,
-      messages: []
+      messages: [],
+      abortController: null,
+      isGenerating: false,
+      showModelTable: false
     };
 
-    // ================= INIT =================
+    // Header 安全過濾：避免 non ISO-8859-1 字元導致 fetch 失敗
+    function toHeaderAscii(str, fallback = 'AI Chat Studio') {
+      const cleaned = String(str || '').replace(/[^\x20-\x7E]/g, '').trim();
+      return cleaned || fallback;
+    }
+
+    // ================= 初始化 (起始頁面為空白畫布) =================
     function init() {
+      renderLayoutPicker();
       renderPalette();
-      loadTemplate('standard');
+      renderCanvas();
+      renderInspector();
       applyI18n();
     }
 
     function toggleLang() {
-      state.lang = state.lang === 'en' ? 'zh' : 'en';
-      document.getElementById('langLabel').textContent = state.lang === 'en' ? '繁體中文' : 'English';
+      state.lang = state.lang === 'zh' ? 'en' : 'zh';
+      document.getElementById('langLabel').textContent = state.lang === 'zh' ? 'EN' : '繁體中文';
       applyI18n();
+      renderLayoutPicker();
       renderPalette();
       renderCanvas();
       renderInspector();
@@ -414,33 +500,44 @@
       document.getElementById('canvasToolbar').classList.toggle('hidden', !isEdit);
 
       document.getElementById('btnModeEdit').className = isEdit
-        ? 'px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5'
-        : 'px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5';
+        ? 'px-4 py-1.5 text-xs font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5'
+        : 'px-4 py-1.5 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-900 transition flex items-center gap-1.5';
       document.getElementById('btnModePreview').className = !isEdit
-        ? 'px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5'
-        : 'px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5';
+        ? 'px-4 py-1.5 text-xs font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5'
+        : 'px-4 py-1.5 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-900 transition flex items-center gap-1.5';
 
       renderCanvas();
     }
 
-    // ================= PALETTE & TEMPLATES =================
+    // ================= 排版樣式與積木面板 =================
+    function renderLayoutPicker() {
+      const isZh = state.lang === 'zh';
+      document.getElementById('layoutPicker').innerHTML = LAYOUT_OPTIONS.map(l => {
+        const active = state.global.layout === l.id;
+        return `
+          <button onclick="setLayout('${l.id}')"
+                  class="p-2 rounded-xl border text-center transition ${active ? 'bg-indigo-50 border-indigo-500 text-indigo-600 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white'}">
+            ${l.svg}
+            <div class="text-[11px] font-bold">${isZh ? l.nameZh : l.nameEn}</div>
+          </button>`;
+      }).join('');
+    }
+
+    function setLayout(layoutId) {
+      state.global.layout = layoutId;
+      renderLayoutPicker();
+      renderCanvas();
+    }
+
     function renderPalette() {
-      const container = document.getElementById('paletteList');
-      const isEn = state.lang === 'en';
-      container.innerHTML = COMPONENT_TYPES.map(c => `
+      const isZh = state.lang === 'zh';
+      document.getElementById('paletteList').innerHTML = COMPONENT_TYPES.map(c => `
         <div draggable="true"
              ondragstart="handlePaletteDragStart(event, '${c.type}')"
-             class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-sm cursor-grab active:cursor-grabbing transition group">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-lg ${c.badgeBg} flex items-center justify-center shrink-0">
-              ${c.svg}
-            </div>
-            <div class="min-w-0">
-              <div class="text-xs font-semibold text-slate-800 truncate">${isEn ? c.nameEn : c.nameZh}</div>
-              <div class="text-[10px] text-slate-500 truncate">${isEn ? c.descEn : c.descZh}</div>
-            </div>
-          </div>
-          <button onclick="addBlock('${c.type}')" title="Add" class="w-6 h-6 rounded-lg bg-white border border-slate-200 group-hover:border-indigo-300 hover:bg-indigo-600 hover:text-white text-slate-500 text-xs font-bold flex items-center justify-center shrink-0 transition ml-1.5">+</button>
+             onclick="addBlock('${c.type}')"
+             class="flex flex-col items-center justify-center p-2.5 rounded-2xl border ${c.color} hover:shadow-sm cursor-pointer active:scale-95 transition text-center">
+          <span class="text-xl mb-1">${c.icon}</span>
+          <span class="text-[11px] font-bold">${isZh ? c.nameZh : c.nameEn}</span>
         </div>
       `).join('');
     }
@@ -449,20 +546,15 @@
       state.blocks = [];
       state.selectedId = null;
       if (name === 'standard') {
-        ['header', 'apikey', 'model', 'system', 'prompts', 'chat', 'footer'].forEach(t => addBlock(t, false));
+        ['header', 'apikey', 'model', 'kb', 'system', 'params', 'prompts', 'chat', 'footer'].forEach(t => addBlock(t, false));
       } else if (name === 'minimal') {
-        ['header', 'apikey', 'chat'].forEach(t => addBlock(t, false));
+        ['header', 'apikey', 'model', 'chat', 'footer'].forEach(t => addBlock(t, false));
       } else if (name === 'translator') {
-        addBlock('header', false);
-        addBlock('apikey', false);
-        addBlock('model', false);
-        addBlock('system', false);
+        ['header', 'apikey', 'model', 'system', 'prompts', 'chat', 'footer'].forEach(t => addBlock(t, false));
         const sys = state.blocks.find(b => b.type === 'system');
-        if (sys) sys.props.defaultPrompt = 'You are a professional English <-> Traditional Chinese translator. Translate accurately and naturally.';
-        addBlock('prompts', false);
+        if (sys) sys.props.defaultPrompt = '你是一位專業的中英文雙語翻譯官，請提供自然、流暢且準確的翻譯結果。';
         const pr = state.blocks.find(b => b.type === 'prompts');
-        if (pr) pr.props.buttons = 'Translate to 繁體中文, Translate to English, Polish Business Tone';
-        addBlock('chat', false);
+        if (pr) pr.props.buttons = '翻譯成繁體中文, 翻譯成英文, 改寫為專業商務語氣';
       }
       renderCanvas();
       renderInspector();
@@ -472,11 +564,7 @@
       const def = COMPONENT_TYPES.find(c => c.type === type);
       if (!def) return;
       const id = 'blk_' + Math.random().toString(36).slice(2, 9);
-      state.blocks.push({
-        id,
-        type,
-        props: JSON.parse(JSON.stringify(def.defaultProps))
-      });
+      state.blocks.push({ id, type, props: JSON.parse(JSON.stringify(def.defaultProps)) });
       state.selectedId = id;
       if (shouldRender) {
         renderCanvas();
@@ -491,43 +579,33 @@
       renderInspector();
     }
 
-    // ================= DRAG & DROP =================
+    // ================= 拖放功能 =================
     function handlePaletteDragStart(e, type) {
       state.dragSource = { kind: 'new', type };
       e.dataTransfer.effectAllowed = 'copy';
     }
-
     function handleBlockDragStart(e, index) {
       state.dragSource = { kind: 'move', index };
       e.dataTransfer.effectAllowed = 'move';
     }
-
     function handleCanvasDragOver(e) {
       e.preventDefault();
       document.getElementById('canvasContainer').classList.add('drag-over');
     }
-
-    function handleCanvasDragLeave(e) {
+    function handleCanvasDragLeave() {
       document.getElementById('canvasContainer').classList.remove('drag-over');
     }
-
     function handleCanvasDrop(e) {
       e.preventDefault();
       document.getElementById('canvasContainer').classList.remove('drag-over');
-      if (!state.dragSource) return;
-
-      if (state.dragSource.kind === 'new') {
-        addBlock(state.dragSource.type);
-      }
+      if (state.dragSource && state.dragSource.kind === 'new') addBlock(state.dragSource.type);
       state.dragSource = null;
     }
-
     function handleBlockDrop(e, targetIndex) {
       e.preventDefault();
       e.stopPropagation();
       document.getElementById('canvasContainer').classList.remove('drag-over');
       if (!state.dragSource) return;
-
       if (state.dragSource.kind === 'move') {
         const from = state.dragSource.index;
         if (from !== targetIndex) {
@@ -538,11 +616,7 @@
       } else if (state.dragSource.kind === 'new') {
         const def = COMPONENT_TYPES.find(c => c.type === state.dragSource.type);
         const id = 'blk_' + Math.random().toString(36).slice(2, 9);
-        state.blocks.splice(targetIndex, 0, {
-          id,
-          type: def.type,
-          props: JSON.parse(JSON.stringify(def.defaultProps))
-        });
+        state.blocks.splice(targetIndex, 0, { id, type: def.type, props: JSON.parse(JSON.stringify(def.defaultProps)) });
         state.selectedId = id;
         renderCanvas();
         renderInspector();
@@ -572,7 +646,7 @@
       renderInspector();
     }
 
-    // ================= RENDER CANVAS (VISUAL WIREFRAME CARDS) =================
+    // ================= 繪製畫布 (依版型呈現) =================
     function renderCanvas() {
       const container = document.getElementById('canvasContainer');
       if (state.mode === 'preview') {
@@ -581,140 +655,165 @@
       }
 
       if (state.blocks.length === 0) {
+        const dict = i18n[state.lang];
         container.innerHTML = `
-          <div class="border-2 border-dashed border-slate-300 bg-white/60 rounded-2xl p-12 text-center text-slate-500 text-sm flex flex-col items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          <div class="border-2 border-dashed border-slate-300 bg-white/80 rounded-3xl p-10 sm:p-14 text-center text-slate-500 flex flex-col items-center gap-4 shadow-sm">
+            <div class="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-3xl">⬜</div>
+            <div>
+              <h3 class="text-base font-bold text-slate-800 mb-1">${dict.emptyCanvasTitle}</h3>
+              <p class="text-xs text-slate-500 max-w-md mx-auto">${dict.emptyCanvas}</p>
             </div>
-            <p>${i18n[state.lang].emptyCanvas}</p>
+            <div class="flex flex-wrap justify-center gap-2 pt-2">
+              <button onclick="loadTemplate('standard')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition">✨ ${dict.tplStandard}</button>
+              <button onclick="loadTemplate('minimal')" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition">💬 ${dict.tplMinimal}</button>
+              <button onclick="loadTemplate('translator')" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition">🌏 ${dict.tplTranslator}</button>
+            </div>
           </div>`;
         return;
       }
 
-      container.innerHTML = state.blocks.map((blk, idx) => {
-        const def = COMPONENT_TYPES.find(c => c.type === blk.type);
-        const isSelected = state.selectedId === blk.id;
-        return `
-          <div draggable="true"
-               ondragstart="handleBlockDragStart(event, ${idx})"
-               ondragover="event.preventDefault()"
-               ondrop="handleBlockDrop(event, ${idx})"
-               onclick="selectBlock('${blk.id}')"
-               class="rounded-2xl border ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'border-slate-200 hover:border-indigo-300 shadow-sm'} bg-white p-3.5 cursor-pointer transition group">
-            <div class="flex items-center justify-between mb-2.5">
-              <div class="flex items-center gap-2">
-                <span class="cursor-grab text-slate-400 hover:text-slate-600 text-xs">⋮⋮</span>
-                <div class="w-6 h-6 rounded-md ${def.badgeBg} flex items-center justify-center">${def.svg}</div>
-                <span class="text-xs font-bold text-slate-800">${state.lang === 'en' ? def.nameEn : def.nameZh}</span>
-              </div>
-              <div class="flex items-center gap-1 opacity-75 group-hover:opacity-100">
-                <button onclick="event.stopPropagation(); moveBlock(${idx}, -1)" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">↑</button>
-                <button onclick="event.stopPropagation(); moveBlock(${idx}, 1)" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">↓</button>
-                <button onclick="removeBlock('${blk.id}', event)" class="px-2 py-0.5 rounded-md bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white text-[11px] font-bold transition">✕</button>
-              </div>
+      const layout = state.global.layout;
+      const wrapperCls = layout === 'card'
+        ? 'bg-white p-5 rounded-3xl shadow-lg border border-slate-200 max-w-2xl mx-auto space-y-3'
+        : (layout === 'single' ? 'max-w-2xl mx-auto space-y-3' : 'space-y-3');
+
+      if (layout === 'split') {
+        const headerHtml = state.blocks.filter(b => b.type === 'header').map(b => renderEditCard(b)).join('');
+        const footerHtml = state.blocks.filter(b => b.type === 'footer').map(b => renderEditCard(b)).join('');
+        const leftHtml = state.blocks.filter(b => ['apikey', 'model', 'kb', 'system', 'params', 'prompts', 'empty'].includes(b.type)).map(b => renderEditCard(b)).join('');
+        const rightHtml = state.blocks.filter(b => b.type === 'chat').map(b => renderEditCard(b)).join('');
+
+        container.innerHTML = `
+          <div class="space-y-3">
+            ${headerHtml}
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+              <div class="md:col-span-5 space-y-3">${leftHtml}</div>
+              <div class="md:col-span-7 space-y-3">${rightHtml}</div>
             </div>
-            <div class="text-xs pointer-events-none">
-              ${renderBlockPreviewSnippet(blk)}
-            </div>
-          </div>
-        `;
-      }).join('');
+            ${footerHtml}
+          </div>`;
+      } else {
+        container.innerHTML = `<div class="${wrapperCls}">${state.blocks.map(b => renderEditCard(b)).join('')}</div>`;
+      }
     }
 
-    function renderBlockPreviewSnippet(blk) {
+    function renderEditCard(blk) {
+      const idx = state.blocks.findIndex(x => x.id === blk.id);
+      const def = COMPONENT_TYPES.find(c => c.type === blk.type);
+      const isSelected = state.selectedId === blk.id;
+      const isZh = state.lang === 'zh';
+
+      return `
+        <div draggable="true"
+             ondragstart="handleBlockDragStart(event, ${idx})"
+             ondragover="event.preventDefault()"
+             ondrop="handleBlockDrop(event, ${idx})"
+             onclick="selectBlock('${blk.id}')"
+             class="rounded-2xl border ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'border-slate-200 hover:border-indigo-300 shadow-sm'} bg-white p-3.5 cursor-pointer transition group">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="cursor-grab text-slate-300 hover:text-slate-500 text-xs">⋮⋮</span>
+              <span class="text-base">${def.icon}</span>
+              <span class="text-xs font-bold text-slate-800">${isZh ? def.nameZh : def.nameEn}</span>
+            </div>
+            <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100">
+              <button onclick="event.stopPropagation(); moveBlock(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">↑</button>
+              <button onclick="event.stopPropagation(); moveBlock(${idx}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">↓</button>
+              <button onclick="removeBlock('${blk.id}', event)" class="w-6 h-6 rounded-lg bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white text-[11px] font-bold transition">✕</button>
+            </div>
+          </div>
+          <div class="text-xs pointer-events-none">${renderBlockSnippet(blk)}</div>
+        </div>`;
+    }
+
+    function renderBlockSnippet(blk) {
       const p = blk.props;
-      const isEn = state.lang === 'en';
+      const isZh = state.lang === 'zh';
       const accent = state.global.accent;
       switch (blk.type) {
         case 'header':
-          return `<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-            <div><div class="font-bold text-sm" style="color:${accent}">${esc(isEn ? p.titleEn : p.titleZh)}</div>
-            <div class="text-[11px] text-slate-500">${esc(isEn ? p.subtitleEn : p.subtitleZh)}</div></div>
-            <span class="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] text-slate-600">🌐 EN / 繁中</span>
+          return `<div class="p-3 rounded-xl bg-slate-50 flex items-center justify-between">
+            <div><div class="font-bold text-sm" style="color:${accent}">${esc(isZh ? p.titleZh : p.titleEn)}</div>
+            <div class="text-[11px] text-slate-500">${esc(isZh ? p.subtitleZh : p.subtitleEn)}</div></div>
+            <span class="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] text-slate-500">🌐 中/EN</span>
           </div>`;
         case 'apikey':
-          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-[11px] text-slate-400 flex items-center justify-between">
-            <span>•••••••••••• ${esc(p.placeholder)}</span>
-            <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-sans font-medium">OpenRouter</span>
-          </div>`;
+          return `<div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 font-mono text-[11px] text-slate-400 flex justify-between"><span>•••••••• ${esc(p.placeholder)}</span><span class="text-emerald-600 font-sans">openrouter.ai/keys</span></div>`;
         case 'model':
-          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] text-slate-700 flex items-center justify-between">
-            <span>${esc(p.models.split(',')[0])}</span>
-            <span class="text-slate-400">▾</span>
-          </div>`;
+          return `<div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-[11px] text-slate-700 flex justify-between"><span>🆓 ${esc(p.models.split(',')[0])}</span><span>↻ ▾</span></div>`;
+        case 'kb':
+          return `<div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-[11px] text-slate-500 flex justify-between"><span>📄 ${isZh ? '上傳 .txt / .md' : 'Upload .txt / .md'}</span><span>0 chars</span></div>`;
         case 'system':
-          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] text-slate-500 italic truncate">"${esc(p.defaultPrompt)}"</div>`;
+          return `<div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-[11px] text-slate-500 truncate">${esc(p.defaultPrompt)}</div>`;
         case 'prompts':
-          return `<div class="flex flex-wrap gap-1.5">${p.buttons.split(',').slice(0,4).map(b => `<span class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-white" style="background:${accent}">${esc(b.trim())}</span>`).join('')}</div>`;
+          return `<div class="flex flex-wrap gap-1.5">${p.buttons.split(',').slice(0,3).map(b => `<span class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-white" style="background:${accent}">${esc(b.trim())}</span>`).join('')}</div>`;
         case 'params':
-          return `<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex items-center gap-3">
-            <span class="text-[11px] text-slate-600">${esc(isEn ? p.labelEn : p.labelZh)}</span>
-            <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full w-1/3 rounded-full" style="background:${accent}"></div></div>
-            <span class="text-[11px] font-bold text-slate-700">${esc(p.defaultTemp)}</span>
+          return `<div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 flex items-center gap-3">
+            <div class="flex-1 h-1.5 bg-slate-200 rounded-full"><div class="h-full w-1/3 rounded-full" style="background:${accent}"></div></div>
+            <span class="text-[11px] font-bold text-slate-600">${esc(p.defaultTemp)}</span>
           </div>`;
         case 'chat':
-          return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
-            <div class="inline-block bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[11px] text-slate-600 shadow-sm">${esc(isEn ? p.welcomeEn : p.welcomeZh)}</div>
-            <div class="flex gap-1.5"><div class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-[10px] text-slate-400">${esc(isEn ? p.placeholderEn : p.placeholderZh)}</div><div class="px-2.5 py-1 rounded-lg text-[10px] text-white font-semibold" style="background:${accent}">Send</div></div>
+          return `<div class="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-2">
+            <div class="inline-block bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[11px] text-slate-600">${esc(isZh ? p.welcomeZh : p.welcomeEn)}</div>
+            <div class="flex gap-1.5"><div class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-[10px] text-slate-400">${esc(isZh ? p.placeholderZh : p.placeholderEn)}</div><div class="px-2.5 py-1 rounded-lg text-[10px] text-white font-bold" style="background:${accent}">${i18n[state.lang].sendBtn}</div></div>
           </div>`;
+        case 'empty':
+          const title = isZh ? p.titleZh : p.titleEn;
+          const content = isZh ? p.contentZh : p.contentEn;
+          return (title || content)
+            ? `<div class="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5"><div class="font-bold text-slate-700">${esc(title)}</div><div class="text-slate-500 text-[11px]">${esc(content)}</div></div>`
+            : `<div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl py-3 text-center text-[11px] text-slate-400">${isZh ? '空白留白／自訂區塊' : 'Empty Spacer / Custom Box'}</div>`;
         case 'footer':
-          return `<div class="text-center text-[11px] text-slate-400 py-1">${esc(isEn ? p.textEn : p.textZh)}</div>`;
+          return `<div class="text-center text-[11px] text-slate-400">${esc(isZh ? p.textZh : p.textEn)}</div>`;
         default: return '';
       }
     }
 
-    // ================= INSPECTOR =================
+    // ================= 屬性編輯器 =================
     function renderInspector() {
       const container = document.getElementById('inspectorContent');
       const blk = state.blocks.find(b => b.id === state.selectedId);
+      const isZh = state.lang === 'zh';
 
       let html = `
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-          <div class="font-bold text-indigo-600 flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            ${i18n[state.lang].globalSettings}
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+          <div class="font-bold text-slate-800">${i18n[state.lang].globalSettings}</div>
+          <div>
+            <label class="block text-slate-500 mb-1">${i18n[state.lang].studioNameZh}</label>
+            <input type="text" value="${esc(state.global.studioNameZh)}" oninput="updateGlobal('studioNameZh', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />
           </div>
           <div>
-            <label class="block text-slate-600 font-medium mb-1">${i18n[state.lang].studioNameEn}</label>
-            <input type="text" value="${esc(state.global.studioNameEn)}" oninput="updateGlobal('studioNameEn', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />
-          </div>
-          <div>
-            <label class="block text-slate-600 font-medium mb-1">${i18n[state.lang].studioNameZh}</label>
-            <input type="text" value="${esc(state.global.studioNameZh)}" oninput="updateGlobal('studioNameZh', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />
+            <label class="block text-slate-500 mb-1">${i18n[state.lang].studioNameEn}</label>
+            <input type="text" value="${esc(state.global.studioNameEn)}" oninput="updateGlobal('studioNameEn', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />
           </div>
           <label class="flex items-center gap-2 cursor-pointer pt-1">
             <input type="checkbox" ${state.global.includeBilingual ? 'checked' : ''} onchange="updateGlobal('includeBilingual', this.checked)" class="rounded border-slate-300 text-indigo-600" />
             <span class="text-slate-700 font-medium">${i18n[state.lang].includeBilingual}</span>
           </label>
-        </div>
-      `;
+        </div>`;
 
       if (!blk) {
-        html += `<p class="text-slate-400 italic text-center pt-4">${i18n[state.lang].selectHint}</p>`;
+        html += `<p class="text-slate-400 text-center pt-4">${i18n[state.lang].selectHint}</p>`;
         container.innerHTML = html;
         return;
       }
 
       const def = COMPONENT_TYPES.find(c => c.type === blk.type);
-      html += `<div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-        <div class="font-bold text-slate-800 flex items-center gap-2">
-          <div class="w-6 h-6 rounded-md ${def.badgeBg} flex items-center justify-center">${def.svg}</div>
-          ${state.lang === 'en' ? def.nameEn : def.nameZh}
-        </div>`;
+      html += `<div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+        <div class="font-bold text-slate-800 flex items-center gap-1.5"><span>${def.icon}</span> ${isZh ? def.nameZh : def.nameEn}</div>`;
 
       Object.keys(blk.props).forEach(key => {
         const val = blk.props[key];
-        const isLong = key.toLowerCase().includes('prompt') || key === 'models' || key === 'buttons';
+        const isLong = key.toLowerCase().includes('prompt') || key === 'models' || key === 'buttons' || key.toLowerCase().includes('content');
         html += `
           <div>
-            <label class="block text-slate-600 font-medium mb-1 capitalize">${key}</label>
+            <label class="block text-slate-500 mb-1">${key}</label>
             ${isLong
-              ? `<textarea rows="3" oninput="updateBlockProp('${blk.id}', '${key}', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400">${esc(val)}</textarea>`
-              : `<input type="text" value="${esc(val)}" oninput="updateBlockProp('${blk.id}', '${key}', this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />`
+              ? `<textarea rows="3" oninput="updateBlockProp('${blk.id}', '${key}', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400">${esc(val)}</textarea>`
+              : `<input type="text" value="${esc(val)}" oninput="updateBlockProp('${blk.id}', '${key}', this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-400" />`
             }
           </div>`;
       });
-
       html += `</div>`;
       container.innerHTML = html;
     }
@@ -732,100 +831,243 @@
       }
     }
 
-    // ================= LIVE PREVIEW (REAL OPENROUTER) =================
+    // ================= 即時試用 (免費模型 + 知識庫 + 匯出MD) =================
+    async function refreshFreeModels(blkId) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/models');
+        const json = await res.json();
+        const fetched = (json.data || [])
+          .filter(m => m.id === 'openrouter/free' || m.id.endsWith(':free') || (parseFloat(m.pricing?.prompt) === 0 && parseFloat(m.pricing?.completion) === 0))
+          .map(m => m.id);
+        const merged = Array.from(new Set([...DEFAULT_FREE_MODELS, ...fetched]));
+        const blk = state.blocks.find(b => b.id === blkId);
+        if (blk && merged.length) {
+          blk.props.models = merged.slice(0, 25).join(', ');
+          renderCanvas();
+        }
+      } catch (e) {
+        alert('無法取得線上免費模型列表，將繼續使用預設免費模型。');
+      }
+    }
+
+    function handlePreviewKbUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewState.kbText = e.target.result;
+        previewState.kbName = file.name;
+        renderCanvas();
+      };
+      reader.readAsText(file);
+    }
+
+    function clearPreviewKb() {
+      previewState.kbText = '';
+      previewState.kbName = '';
+      renderCanvas();
+    }
+
+    function exportPreviewChatMd() {
+      const md = previewState.messages.map(m => `### ${m.role === 'user' ? 'User' : 'AI'}\n${m.content}\n`).join('\n');
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'chat-export.md';
+      a.click();
+    }
+
+    function stopPreviewGeneration() {
+      if (previewState.abortController) {
+        previewState.abortController.abort();
+        previewState.abortController = null;
+        previewState.isGenerating = false;
+        renderCanvas();
+      }
+    }
+
     function renderLivePreview(container) {
+      if (state.blocks.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3 shadow-sm">
+            <div class="text-3xl">🧩</div>
+            <p class="text-sm text-slate-600">${i18n[state.lang].emptyPreview}</p>
+            <button onclick="setMode('edit')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">${i18n[state.lang].modeEdit}</button>
+          </div>`;
+        return;
+      }
+
       const isLight = state.global.theme === 'light';
       const cardBg = isLight ? 'bg-white border-slate-200 text-slate-900 shadow-sm' : 'bg-slate-900 border-slate-800 text-slate-100';
       const inputBg = isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-700 text-slate-100';
-      const isEn = state.lang === 'en';
+      const isZh = state.lang === 'zh';
       const accent = state.global.accent;
+      const layout = state.global.layout;
 
-      let html = `<div class="space-y-4 ${!isLight ? 'bg-slate-950 p-6 rounded-2xl' : ''}">`;
-
-      state.blocks.forEach(blk => {
+      const renderPreviewBlock = (blk) => {
         const p = blk.props;
         if (blk.type === 'header') {
-          html += `
-            <div class="p-5 rounded-2xl border ${cardBg} flex items-center justify-between">
-              <div>
-                <h2 class="text-xl font-bold" style="color:${accent}">${esc(isEn ? p.titleEn : p.titleZh)}</h2>
-                <p class="text-xs opacity-70 mt-0.5">${esc(isEn ? p.subtitleEn : p.subtitleZh)}</p>
-              </div>
-              ${state.global.includeBilingual ? `<button onclick="toggleLang()" class="px-3 py-1.5 rounded-xl border border-slate-300/60 text-xs font-medium">🌐 ${isEn ? '繁體中文' : 'English'}</button>` : ''}
-            </div>`;
+          return `<div class="p-5 rounded-2xl border ${cardBg} flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              <h2 class="text-xl font-bold" style="color:${accent}">${esc(isZh ? p.titleZh : p.titleEn)}</h2>
+              <p class="text-xs opacity-70 mt-0.5">${esc(isZh ? p.subtitleZh : p.subtitleEn)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-bold">🆓 ${esc(previewState.model)}</span>
+              ${state.global.includeBilingual ? `<button onclick="toggleLang()" class="px-3 py-1.5 rounded-xl border border-slate-300/60 text-xs font-medium">🌐 ${isZh ? 'EN' : '繁體中文'}</button>` : ''}
+            </div>
+          </div>`;
         } else if (blk.type === 'apikey') {
-          html += `
-            <div class="p-4 rounded-xl border ${cardBg}">
-              <label class="block text-xs font-semibold mb-1.5">🔑 ${esc(isEn ? p.labelEn : p.labelZh)}</label>
+          const connected = !!previewState.apiKey;
+          return `<div class="p-4 rounded-2xl border ${cardBg} space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold">🔑 ${esc(isZh ? p.labelZh : p.labelEn)}</label>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${connected ? 'bg-emerald-500/15 text-emerald-600' : 'bg-slate-500/15 text-slate-500'}">${connected ? (isZh ? '已儲存' : 'Connected') : (isZh ? '未連線' : 'Not Connected')}</span>
+            </div>
+            <div class="flex gap-1.5">
               <input type="password" value="${esc(previewState.apiKey)}" placeholder="${esc(p.placeholder)}"
-                     oninput="previewState.apiKey=this.value; localStorage.setItem('creator_preview_apikey', this.value)"
-                     class="w-full px-3 py-2 rounded-lg border text-xs ${inputBg}" />
-            </div>`;
+                     oninput="previewState.apiKey=this.value.trim(); localStorage.setItem('creator_preview_apikey', this.value.trim())"
+                     class="flex-1 px-3 py-2 rounded-xl border text-xs ${inputBg}" />
+              <button onclick="previewState.apiKey=''; localStorage.removeItem('creator_preview_apikey'); renderCanvas()" class="px-2.5 py-1.5 rounded-xl border border-slate-300/50 text-[11px]">${isZh ? '清除' : 'Clear'}</button>
+            </div>
+            <p class="text-[10px] opacity-65">${isZh ? '僅儲存於瀏覽器本機。免費申請金鑰：' : 'Stored locally. Get a free key at '}<a href="https://openrouter.ai/keys" target="_blank" class="underline text-indigo-500">openrouter.ai/keys</a></p>
+          </div>`;
         } else if (blk.type === 'model') {
-          const models = p.models.split(',').map(m => m.trim()).filter(Boolean);
-          if (!models.includes(previewState.model) && models.length) previewState.model = models[0];
-          html += `
-            <div class="p-4 rounded-xl border ${cardBg}">
-              <label class="block text-xs font-semibold mb-1.5">🧠 ${esc(isEn ? p.labelEn : p.labelZh)}</label>
-              <select onchange="previewState.model=this.value" class="w-full px-3 py-2 rounded-lg border text-xs ${inputBg}">
-                ${models.map(m => `<option value="${esc(m)}" ${m === previewState.model ? 'selected' : ''}>${esc(m)}</option>`).join('')}
-              </select>
-            </div>`;
+          const models = p.models.split(',').map(m => m.trim()).filter(m => m === 'openrouter/free' || m.endsWith(':free'));
+          if (models.length === 0) models.push('openrouter/free');
+          if (!models.includes(previewState.model)) previewState.model = models[0];
+          const meta = FREE_MODEL_CATALOG.find(c => c.id === previewState.model);
+
+          return `<div class="p-4 rounded-2xl border ${cardBg} space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold">🆓 ${esc(isZh ? p.labelZh : p.labelEn)}</label>
+              <div class="flex items-center gap-1.5">
+                <button onclick="previewState.showModelTable=!previewState.showModelTable; renderCanvas()" class="px-2 py-0.5 rounded-lg border border-slate-300/50 text-[10px] hover:bg-slate-500/10">${isZh ? '模型一覽' : 'Guide'}</button>
+                <button onclick="refreshFreeModels('${blk.id}')" title="${isZh ? '更新免費模型' : 'Refresh Free Models'}" class="px-2 py-0.5 rounded-lg border border-slate-300/50 text-xs hover:bg-slate-500/10">↻</button>
+              </div>
+            </div>
+            <select onchange="previewState.model=this.value; renderCanvas()" class="w-full px-3 py-2 rounded-xl border text-xs ${inputBg}">
+              ${models.map(m => {
+                const info = FREE_MODEL_CATALOG.find(c => c.id === m);
+                const label = info ? `${m}（${info.scene}・${info.ctx}）` : m;
+                return `<option value="${esc(m)}" ${m === previewState.model ? 'selected' : ''}>${esc(label)}</option>`;
+              }).join('')}
+            </select>
+            ${meta ? `<div class="text-[11px] px-2.5 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex flex-wrap gap-x-2 gap-y-0.5">
+              <span class="font-bold">${esc(meta.scene)}</span>
+              <span class="opacity-70">Context: ${esc(meta.ctx)}</span>
+              <span class="opacity-80">• ${esc(meta.note)}</span>
+            </div>` : ''}
+            ${previewState.showModelTable ? `<div class="overflow-x-auto border border-slate-200/60 rounded-xl">
+              <table class="w-full text-left text-[10px]">
+                <thead class="bg-slate-500/10"><tr><th class="p-1.5">模型 ID</th><th class="p-1.5">適用場景</th><th class="p-1.5">上下文</th><th class="p-1.5">備註</th></tr></thead>
+                <tbody>${FREE_MODEL_CATALOG.map(c => `<tr class="border-t border-slate-200/40 cursor-pointer hover:bg-indigo-500/10" onclick="previewState.model='${c.id}'; renderCanvas()">
+                  <td class="p-1.5 font-mono font-semibold">${esc(c.id)}</td><td class="p-1.5">${esc(c.scene)}</td><td class="p-1.5">${esc(c.ctx)}</td><td class="p-1.5 opacity-80">${esc(c.note)}</td>
+                </tr>`).join('')}</tbody>
+              </table>
+            </div>` : ''}
+          </div>`;
+        } else if (blk.type === 'kb') {
+          const kbActive = previewState.kbText.length > 0;
+          return `<div class="p-4 rounded-2xl border ${cardBg} space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold">📄 ${esc(isZh ? p.labelZh : p.labelEn)}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${kbActive ? 'bg-teal-500/15 text-teal-600' : 'bg-slate-500/10 text-slate-400'}">${kbActive ? previewState.kbText.length + ' chars' : 'Off'}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="flex-1 cursor-pointer text-center py-1.5 px-3 rounded-xl border border-dashed border-slate-300 text-[11px] hover:border-indigo-400">
+                ${previewState.kbName ? esc(previewState.kbName) : (isZh ? '上傳 .txt / .md' : 'Upload .txt / .md')}
+                <input type="file" accept=".txt,.md" onchange="handlePreviewKbUpload(this)" class="hidden" />
+              </label>
+              ${kbActive ? `<button onclick="clearPreviewKb()" class="px-2.5 py-1.5 rounded-xl border border-slate-300/50 text-[11px]">${isZh ? '清除' : 'Clear'}</button>` : ''}
+            </div>
+          </div>`;
         } else if (blk.type === 'system') {
           if (!previewState.systemPrompt) previewState.systemPrompt = p.defaultPrompt;
-          html += `
-            <div class="p-4 rounded-xl border ${cardBg}">
-              <label class="block text-xs font-semibold mb-1.5">🎭 ${esc(isEn ? p.labelEn : p.labelZh)}</label>
-              <textarea rows="2" oninput="previewState.systemPrompt=this.value" class="w-full px-3 py-2 rounded-lg border text-xs ${inputBg}">${esc(previewState.systemPrompt)}</textarea>
-            </div>`;
+          return `<div class="p-4 rounded-2xl border ${cardBg}">
+            <label class="block text-xs font-bold mb-1.5">🎭 ${esc(isZh ? p.labelZh : p.labelEn)}</label>
+            <textarea rows="2" oninput="previewState.systemPrompt=this.value" class="w-full px-3 py-2 rounded-xl border text-xs ${inputBg}">${esc(previewState.systemPrompt)}</textarea>
+          </div>`;
         } else if (blk.type === 'prompts') {
           const btns = p.buttons.split(',').map(b => b.trim()).filter(Boolean);
-          html += `
-            <div class="p-4 rounded-xl border ${cardBg}">
-              <div class="text-xs font-semibold mb-2">⚡ ${esc(isEn ? p.labelEn : p.labelZh)}</div>
-              <div class="flex flex-wrap gap-2">
-                ${btns.map(b => `<button onclick="sendPreviewMessage('${esc(b)}')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition hover:opacity-90" style="background:${accent}">${esc(b)}</button>`).join('')}
-              </div>
-            </div>`;
+          return `<div class="p-4 rounded-2xl border ${cardBg}">
+            <div class="text-xs font-bold mb-2">⚡ ${esc(isZh ? p.labelZh : p.labelEn)}</div>
+            <div class="flex flex-wrap gap-1.5">
+              ${btns.map(b => `<button onclick="sendPreviewMessage('${esc(b)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-white transition hover:opacity-90" style="background:${accent}">${esc(b)}</button>`).join('')}
+            </div>
+          </div>`;
         } else if (blk.type === 'params') {
-          html += `
-            <div class="p-4 rounded-xl border ${cardBg}">
-              <div class="flex justify-between text-xs font-semibold mb-1">
-                <span>🎛️ ${esc(isEn ? p.labelEn : p.labelZh)}</span>
-                <span id="tempVal">${previewState.temperature}</span>
-              </div>
-              <input type="range" min="0" max="2" step="0.1" value="${previewState.temperature}"
-                     oninput="previewState.temperature=parseFloat(this.value); document.getElementById('tempVal').textContent=this.value"
-                     class="w-full" />
-            </div>`;
+          return `<div class="p-4 rounded-2xl border ${cardBg}">
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span>🎛️ ${esc(isZh ? p.labelZh : p.labelEn)}</span>
+              <span id="tempVal">${previewState.temperature}</span>
+            </div>
+            <input type="range" min="0" max="2" step="0.1" value="${previewState.temperature}"
+                   oninput="previewState.temperature=parseFloat(this.value); document.getElementById('tempVal').textContent=this.value"
+                   class="w-full" />
+          </div>`;
         } else if (blk.type === 'chat') {
-          html += `
-            <div class="rounded-2xl border ${cardBg} overflow-hidden flex flex-col">
-              <div id="previewChatLog" class="p-4 space-y-3 h-72 overflow-y-auto text-xs">
-                <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                  ${esc(isEn ? p.welcomeEn : p.welcomeZh)}
+          return `<div class="rounded-2xl border ${cardBg} overflow-hidden flex flex-col">
+            <div class="px-4 py-2 border-b ${isLight ? 'border-slate-100 bg-slate-50/70' : 'border-slate-800'} flex items-center justify-between text-[11px]">
+              <button onclick="previewState.messages=[]; renderCanvas()" class="hover:underline opacity-75">+ ${isZh ? '新對話' : 'New'}</button>
+              <button onclick="exportPreviewChatMd()" class="hover:underline opacity-75">${i18n[state.lang].exportMd}</button>
+            </div>
+            <div id="previewChatLog" class="p-4 space-y-3 h-80 overflow-y-auto text-xs">
+              <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">${esc(isZh ? p.welcomeZh : p.welcomeEn)}</div>
+              ${previewState.messages.map(m => `
+                <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+                  <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl whitespace-pre-wrap ${m.role === 'user' ? 'text-white' : (isLight ? 'bg-slate-100 text-slate-800' : 'bg-slate-800 text-slate-100')}"
+                       style="${m.role === 'user' ? 'background:' + accent : ''}">${esc(m.content)}</div>
                 </div>
-                ${previewState.messages.map(m => `
-                  <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
-                    <div class="max-w-[85%] px-3.5 py-2.5 rounded-xl whitespace-pre-wrap ${m.role === 'user' ? 'text-white' : (isLight ? 'bg-slate-100 text-slate-800' : 'bg-slate-800 text-slate-100')}"
-                         style="${m.role === 'user' ? 'background:' + accent : ''}">${esc(m.content)}</div>
-                  </div>
-                `).join('')}
-              </div>
-              <div class="p-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'} flex gap-2">
-                <input id="previewInput" type="text" placeholder="${esc(isEn ? p.placeholderEn : p.placeholderZh)}"
-                       onkeydown="if(event.key==='Enter') sendPreviewMessage()"
-                       class="flex-1 px-3 py-2 rounded-xl border text-xs ${inputBg}" />
-                <button onclick="sendPreviewMessage()" class="px-4 py-2 rounded-xl text-xs font-semibold text-white" style="background:${accent}">Send</button>
-              </div>
-            </div>`;
+              `).join('')}
+            </div>
+            <div class="p-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'} flex gap-2">
+              <input id="previewInput" type="text" placeholder="${esc(isZh ? p.placeholderZh : p.placeholderEn)}"
+                     onkeydown="if(event.key==='Enter') sendPreviewMessage()"
+                     class="flex-1 px-3 py-2 rounded-xl border text-xs ${inputBg}" />
+              ${previewState.isGenerating
+                ? `<button onclick="stopPreviewGeneration()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-500">${i18n[state.lang].stopBtn}</button>`
+                : `<button onclick="sendPreviewMessage()" class="px-4 py-2 rounded-xl text-xs font-bold text-white" style="background:${accent}">${i18n[state.lang].sendBtn}</button>`}
+            </div>
+          </div>`;
+        } else if (blk.type === 'empty') {
+          const title = isZh ? p.titleZh : p.titleEn;
+          const content = isZh ? p.contentZh : p.contentEn;
+          if (!title && !content) return `<div style="height:${parseInt(p.height) || 24}px"></div>`;
+          return `<div class="p-4 rounded-2xl border ${cardBg}">
+            ${title ? `<div class="font-bold text-xs mb-1">${esc(title)}</div>` : ''}
+            ${content ? `<div class="text-xs opacity-80 whitespace-pre-wrap">${esc(content)}</div>` : ''}
+          </div>`;
         } else if (blk.type === 'footer') {
-          html += `<div class="text-center text-[11px] opacity-60 py-2">${esc(isEn ? p.textEn : p.textZh)}</div>`;
+          return `<div class="text-center text-[11px] opacity-60 py-2">${esc(isZh ? p.textZh : p.textEn)}</div>`;
         }
-      });
+        return '';
+      };
 
-      html += `</div>`;
-      container.innerHTML = html;
+      const outerBg = !isLight ? (state.global.theme === 'indigo' ? 'bg-indigo-950 p-6 rounded-3xl' : 'bg-slate-950 p-6 rounded-3xl') : '';
+      let innerHtml = '';
+
+      if (layout === 'split') {
+        const headers = state.blocks.filter(b => b.type === 'header').map(renderPreviewBlock).join('');
+        const footers = state.blocks.filter(b => b.type === 'footer').map(renderPreviewBlock).join('');
+        const lefts = state.blocks.filter(b => ['apikey', 'model', 'kb', 'system', 'params', 'prompts', 'empty'].includes(b.type)).map(renderPreviewBlock).join('');
+        const rights = state.blocks.filter(b => b.type === 'chat').map(renderPreviewBlock).join('');
+        innerHtml = `
+          <div class="space-y-4 ${outerBg}">
+            ${headers}
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+              <div class="md:col-span-5 space-y-3">${lefts}</div>
+              <div class="md:col-span-7 space-y-3">${rights}</div>
+            </div>
+            ${footers}
+          </div>`;
+      } else if (layout === 'card') {
+        innerHtml = `<div class="max-w-2xl mx-auto p-6 rounded-3xl shadow-xl border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'} space-y-3">${state.blocks.map(renderPreviewBlock).join('')}</div>`;
+      } else {
+        innerHtml = `<div class="max-w-2xl mx-auto space-y-3 ${outerBg}">${state.blocks.map(renderPreviewBlock).join('')}</div>`;
+      }
+
+      container.innerHTML = innerHtml;
       const log = document.getElementById('previewChatLog');
       if (log) log.scrollTop = log.scrollHeight;
     }
@@ -833,32 +1075,39 @@
     async function sendPreviewMessage(presetText) {
       const inputEl = document.getElementById('previewInput');
       const text = presetText || (inputEl ? inputEl.value.trim() : '');
-      if (!text) return;
+      if (!text || previewState.isGenerating) return;
       if (!previewState.apiKey) {
-        alert(state.lang === 'en' ? 'Please enter your OpenRouter API Key first!' : '請先輸入您的 OpenRouter API 金鑰！');
+        alert(state.lang === 'zh' ? '請先輸入您的 OpenRouter API 金鑰！' : 'Please enter your OpenRouter API Key first!');
         return;
       }
       if (inputEl && !presetText) inputEl.value = '';
 
       previewState.messages.push({ role: 'user', content: text });
-      previewState.messages.push({ role: 'assistant', content: '⏳ ...' });
+      previewState.messages.push({ role: 'assistant', content: '⏳ 思考中...' });
+      previewState.isGenerating = true;
+      previewState.abortController = new AbortController();
       renderCanvas();
 
       try {
         const msgs = [];
-        if (previewState.systemPrompt) msgs.push({ role: 'system', content: previewState.systemPrompt });
+        let sysContent = previewState.systemPrompt || '';
+        if (previewState.kbText) {
+          sysContent += `\n\n[Knowledge Base (${previewState.kbName})]:\n${previewState.kbText.slice(0, 12000)}`;
+        }
+        if (sysContent.trim()) msgs.push({ role: 'system', content: sysContent.trim() });
         previewState.messages.slice(0, -1).forEach(m => msgs.push(m));
 
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
+          signal: previewState.abortController.signal,
           headers: {
-            'Authorization': 'Bearer ' + previewState.apiKey,
+            'Authorization': 'Bearer ' + toHeaderAscii(previewState.apiKey, ''),
             'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.href,
-            'X-Title': state.global.studioNameEn
+            'HTTP-Referer': toHeaderAscii(window.location.origin, 'https://openrouter.ai'),
+            'X-Title': toHeaderAscii(state.global.studioNameEn, 'AI Chat Studio')
           },
           body: JSON.stringify({
-            model: previewState.model,
+            model: previewState.model || 'openrouter/free',
             messages: msgs,
             temperature: previewState.temperature
           })
@@ -867,15 +1116,20 @@
         if (data.error) throw new Error(data.error.message);
         previewState.messages[previewState.messages.length - 1].content = data.choices[0].message.content;
       } catch (err) {
-        previewState.messages[previewState.messages.length - 1].content = '❌ Error: ' + err.message;
+        if (err.name === 'AbortError') {
+          previewState.messages[previewState.messages.length - 1].content = state.lang === 'zh' ? '⏹️ 已停止生成。' : '⏹️ Stopped.';
+        } else {
+          previewState.messages[previewState.messages.length - 1].content = '❌ 錯誤：' + err.message;
+        }
       }
+      previewState.isGenerating = false;
+      previewState.abortController = null;
       renderCanvas();
     }
 
-    // ================= EXPORT STANDALONE HTML =================
+    // ================= 匯出獨立 index.html (含 Header 安全修復與免費模型清單) =================
     function openExportModal() {
-      const code = generateStandaloneHTML();
-      document.getElementById('exportCodeArea').value = code;
+      document.getElementById('exportCodeArea').value = generateStandaloneHTML();
       document.getElementById('exportModal').classList.remove('hidden');
       document.getElementById('exportModal').classList.add('flex');
     }
@@ -903,106 +1157,179 @@
 
     function generateStandaloneHTML() {
       const cfg = JSON.stringify({ global: state.global, blocks: state.blocks });
+      const catalogJson = JSON.stringify(FREE_MODEL_CATALOG);
       const isLight = state.global.theme === 'light';
       const bodyCls = isLight ? 'bg-slate-50 text-slate-900' : (state.global.theme === 'indigo' ? 'bg-indigo-950 text-slate-100' : 'bg-slate-950 text-slate-100');
+      const maxW = state.global.layout === 'split' ? 'max-w-5xl' : 'max-w-2xl';
 
       return `<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${esc(state.global.studioNameEn)}</title>
+  <title>${esc(state.global.studioNameZh)}</title>
   <script src="https://cdn.tailwindcss.com"><\/script>
 </head>
 <body class="${bodyCls} min-h-screen py-6 px-4 font-sans">
-  <div id="app" class="max-w-3xl mx-auto space-y-4"></div>
+  <div id="app" class="${maxW} mx-auto"></div>
 
   <script>
     const CONFIG = ${cfg};
-    let lang = 'en';
+    const CATALOG = ${catalogJson};
+    let lang = 'zh';
     let apiKey = localStorage.getItem('or_api_key') || '';
-    let model = '';
+    let model = 'openrouter/free';
     let systemPrompt = '';
+    let kbText = '';
+    let kbName = '';
     let temperature = 0.7;
     let messages = [];
+    let abortCtrl = null;
+    let isGen = false;
+    let showGuide = false;
 
     function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function toAscii(s, fb) { const c = String(s||'').replace(/[^\\x20-\\x7E]/g,'').trim(); return c || fb; }
+    function toggleLang() { lang = lang === 'zh' ? 'en' : 'zh'; render(); }
 
-    function toggleLang() {
-      lang = lang === 'en' ? 'zh' : 'en';
-      render();
+    async function refreshFree() {
+      try {
+        const r = await fetch('https://openrouter.ai/api/v1/models');
+        const d = await r.json();
+        const fetched = (d.data||[]).filter(m=>m.id==='openrouter/free'||m.id.endsWith(':free')||(parseFloat(m.pricing?.prompt)===0&&parseFloat(m.pricing?.completion)===0)).map(m=>m.id);
+        const list = Array.from(new Set([...CATALOG.map(c=>c.id), ...fetched]));
+        const blk = CONFIG.blocks.find(b=>b.type==='model');
+        if (blk && list.length) { blk.props.models = list.slice(0,25).join(', '); render(); }
+      } catch(e) { alert('Failed to fetch free models'); }
     }
 
-    function render() {
-      const isEn = lang === 'en';
+    function uploadKb(inp) {
+      const f = inp.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = e => { kbText = e.target.result; kbName = f.name; render(); };
+      rd.readAsText(f);
+    }
+
+    function exportMd() {
+      const md = messages.map(m => '### ' + (m.role==='user'?'User':'AI') + '\\n' + m.content + '\\n').join('\\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([md], {type:'text/markdown'}));
+      a.download = 'chat-export.md';
+      a.click();
+    }
+
+    function stopGen() { if (abortCtrl) { abortCtrl.abort(); abortCtrl=null; isGen=false; render(); } }
+
+    function renderBlock(b) {
+      const p = b.props;
+      const isZh = lang === 'zh';
       const isLight = CONFIG.global.theme === 'light';
       const card = isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/90 border-slate-800';
       const inp = isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-700 text-slate-100';
       const accent = CONFIG.global.accent;
+
+      if (b.type === 'header') {
+        return \`<div class="p-5 rounded-2xl border \${card} flex items-center justify-between gap-2 flex-wrap">
+          <div><h1 class="text-xl font-bold" style="color:\${accent}">\${esc(isZh ? p.titleZh : p.titleEn)}</h1>
+          <p class="text-xs opacity-70 mt-0.5">\${esc(isZh ? p.subtitleZh : p.subtitleEn)}</p></div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-bold">🆓 \${esc(model)}</span>
+            \${CONFIG.global.includeBilingual ? \`<button onclick="toggleLang()" class="px-3 py-1.5 rounded-xl border border-slate-300/60 text-xs font-medium">🌐 \${isZh ? 'EN' : '繁體中文'}</button>\` : ''}
+          </div>
+        </div>\`;
+      } else if (b.type === 'apikey') {
+        return \`<div class="p-4 rounded-2xl border \${card} space-y-2">
+          <div class="flex justify-between items-center"><label class="text-xs font-bold">🔑 \${esc(isZh ? p.labelZh : p.labelEn)}</label>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full \${apiKey?'bg-emerald-500/15 text-emerald-600':'bg-slate-500/15 text-slate-500'}">\${apiKey?(isZh?'已連線':'Connected'):(isZh?'未連線':'Not Connected')}</span></div>
+          <div class="flex gap-1.5"><input type="password" value="\${esc(apiKey)}" placeholder="\${esc(p.placeholder)}" oninput="apiKey=this.value.trim(); localStorage.setItem('or_api_key', this.value.trim())" class="flex-1 px-3 py-2 rounded-xl border text-xs \${inp}" />
+          <button onclick="apiKey=''; localStorage.removeItem('or_api_key'); render()" class="px-2.5 py-1.5 rounded-xl border border-slate-300/50 text-[11px]">\${isZh?'清除':'Clear'}</button></div>
+          <p class="text-[10px] opacity-65">\${isZh?'僅儲存於瀏覽器本機。免費申請金鑰：':'Stored locally. Get a free key at '}<a href="https://openrouter.ai/keys" target="_blank" class="underline text-indigo-500">openrouter.ai/keys</a></p>
+        </div>\`;
+      } else if (b.type === 'model') {
+        const list = p.models.split(',').map(x=>x.trim()).filter(m=>m==='openrouter/free'||m.endsWith(':free'));
+        if (!list.length) list.push('openrouter/free');
+        if (!list.includes(model)) model = list[0];
+        const meta = CATALOG.find(c=>c.id===model);
+        return \`<div class="p-4 rounded-2xl border \${card} space-y-2">
+          <div class="flex justify-between items-center"><label class="text-xs font-bold">🆓 \${esc(isZh ? p.labelZh : p.labelEn)}</label>
+          <div class="flex gap-1.5"><button onclick="showGuide=!showGuide; render()" class="px-2 py-0.5 rounded-lg border border-slate-300/50 text-[10px]">\${isZh?'模型一覽':'Guide'}</button><button onclick="refreshFree()" class="px-2 py-0.5 rounded-lg border border-slate-300/50 text-xs">↻</button></div></div>
+          <select onchange="model=this.value; render()" class="w-full px-3 py-2 rounded-xl border text-xs \${inp}">
+            \${list.map(m=>{ const c=CATALOG.find(x=>x.id===m); return \`<option value="\${esc(m)}" \${m===model?'selected':''}>\${c ? esc(m+'（'+c.scene+'・'+c.ctx+'）') : esc(m)}</option>\`; }).join('')}
+          </select>
+          \${meta ? \`<div class="text-[11px] px-2.5 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20"><b>\${esc(meta.scene)}</b> • Context: \${esc(meta.ctx)} • \${esc(meta.note)}</div>\` : ''}
+          \${showGuide ? \`<div class="overflow-x-auto border border-slate-200/60 rounded-xl"><table class="w-full text-left text-[10px]"><thead class="bg-slate-500/10"><tr><th class="p-1.5">模型 ID</th><th class="p-1.5">適用場景</th><th class="p-1.5">上下文</th><th class="p-1.5">備註</th></tr></thead><tbody>\${CATALOG.map(c=>\`<tr class="border-t border-slate-200/40 cursor-pointer hover:bg-indigo-500/10" onclick="model='\${c.id}';render()"><td class="p-1.5 font-mono font-semibold">\${esc(c.id)}</td><td class="p-1.5">\${esc(c.scene)}</td><td class="p-1.5">\${esc(c.ctx)}</td><td class="p-1.5">\${esc(c.note)}</td></tr>\`).join('')}</tbody></table></div>\` : ''}
+        </div>\`;
+      } else if (b.type === 'kb') {
+        return \`<div class="p-4 rounded-2xl border \${card} space-y-2">
+          <div class="flex justify-between items-center"><span class="text-xs font-bold">📄 \${esc(isZh?p.labelZh:p.labelEn)}</span><span class="text-[10px] font-bold">\${kbText?kbText.length+' chars':'Off'}</span></div>
+          <div class="flex gap-2"><label class="flex-1 cursor-pointer text-center py-1.5 px-3 rounded-xl border border-dashed border-slate-300 text-[11px]">\${kbName?esc(kbName):(isZh?'上傳 .txt / .md':'Upload .txt / .md')}<input type="file" accept=".txt,.md" onchange="uploadKb(this)" class="hidden" /></label>
+          \${kbText?\`<button onclick="kbText='';kbName='';render()" class="px-2.5 py-1.5 rounded-xl border border-slate-300/50 text-[11px]">\${isZh?'清除':'Clear'}</button>\`:''}</div>
+        </div>\`;
+      } else if (b.type === 'system') {
+        if (!systemPrompt) systemPrompt = p.defaultPrompt;
+        return \`<div class="p-4 rounded-2xl border \${card}">
+          <label class="block text-xs font-bold mb-1.5">🎭 \${esc(isZh ? p.labelZh : p.labelEn)}</label>
+          <textarea rows="2" oninput="systemPrompt=this.value" class="w-full px-3 py-2 rounded-xl border text-xs \${inp}">\${esc(systemPrompt)}</textarea>
+        </div>\`;
+      } else if (b.type === 'prompts') {
+        const btns = p.buttons.split(',').map(x=>x.trim()).filter(Boolean);
+        return \`<div class="p-4 rounded-2xl border \${card}">
+          <div class="text-xs font-bold mb-2">⚡ \${esc(isZh ? p.labelZh : p.labelEn)}</div>
+          <div class="flex flex-wrap gap-1.5">
+            \${btns.map(bt=>\`<button onclick="sendMsg('\${esc(bt)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-white" style="background:\${accent}">\${esc(bt)}</button>\`).join('')}
+          </div>
+        </div>\`;
+      } else if (b.type === 'params') {
+        return \`<div class="p-4 rounded-2xl border \${card}">
+          <div class="flex justify-between text-xs font-bold mb-1"><span>🎛️ \${esc(isZh ? p.labelZh : p.labelEn)}</span><span id="tv">\${temperature}</span></div>
+          <input type="range" min="0" max="2" step="0.1" value="\${temperature}" oninput="temperature=parseFloat(this.value); document.getElementById('tv').textContent=this.value" class="w-full" />
+        </div>\`;
+      } else if (b.type === 'chat') {
+        return \`<div class="rounded-2xl border \${card} overflow-hidden flex flex-col">
+          <div class="px-4 py-2 border-b \${isLight?'border-slate-100':'border-slate-800'} flex justify-between text-[11px]">
+            <button onclick="messages=[];render()">+ \${isZh?'新對話':'New'}</button>
+            <button onclick="exportMd()">⬇ \${isZh?'匯出對話 (.md)':'Export Chat (.md)'}</button>
+          </div>
+          <div id="chatLog" class="p-4 space-y-3 h-96 overflow-y-auto text-sm">
+            <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs">\${esc(isZh ? p.welcomeZh : p.welcomeEn)}</div>
+            \${messages.map(m=>\`<div class="flex \${m.role==='user'?'justify-end':'justify-start'}">
+              <div class="max-w-[85%] px-4 py-2.5 rounded-2xl whitespace-pre-wrap text-xs \${m.role==='user'?'text-white':(isLight?'bg-slate-100 text-slate-800':'bg-slate-800')}"
+                   style="\${m.role==='user'?'background:'+accent:''}">\${esc(m.content)}</div>
+            </div>\`).join('')}
+          </div>
+          <div class="p-3 border-t \${isLight?'border-slate-200':'border-slate-800'} flex gap-2">
+            <input id="chatInp" type="text" placeholder="\${esc(isZh ? p.placeholderZh : p.placeholderEn)}"
+                   onkeydown="if(event.key==='Enter') sendMsg()" class="flex-1 px-3 py-2 rounded-xl border text-xs \${inp}" />
+            \${isGen?\`<button onclick="stopGen()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-500">\${isZh?'停止':'Stop'}</button>\`:\`<button onclick="sendMsg()" class="px-4 py-2 rounded-xl text-xs font-bold text-white" style="background:\${accent}">\${isZh?'發送':'Send'}</button>\`}
+          </div>
+        </div>\`;
+      } else if (b.type === 'empty') {
+        const title = isZh ? p.titleZh : p.titleEn;
+        const content = isZh ? p.contentZh : p.contentEn;
+        if (!title && !content) return \`<div style="height:\${parseInt(p.height)||24}px"></div>\`;
+        return \`<div class="p-4 rounded-2xl border \${card}">\${title?\`<div class="font-bold text-xs mb-1">\${esc(title)}</div>\`:''}\${content?\`<div class="text-xs opacity-80 whitespace-pre-wrap">\${esc(content)}</div>\`:''}</div>\`;
+      } else if (b.type === 'footer') {
+        return \`<div class="text-center text-xs opacity-60 py-2">\${esc(isZh ? p.textZh : p.textEn)}</div>\`;
+      }
+      return '';
+    }
+
+    function render() {
+      const layout = CONFIG.global.layout || 'single';
+      const isLight = CONFIG.global.theme === 'light';
       let html = '';
 
-      CONFIG.blocks.forEach(b => {
-        const p = b.props;
-        if (b.type === 'header') {
-          html += \`<div class="p-5 rounded-2xl border \${card} flex items-center justify-between">
-            <div><h1 class="text-xl font-bold" style="color:\${accent}">\${esc(isEn ? p.titleEn : p.titleZh)}</h1>
-            <p class="text-xs opacity-70 mt-0.5">\${esc(isEn ? p.subtitleEn : p.subtitleZh)}</p></div>
-            \${CONFIG.global.includeBilingual ? \`<button onclick="toggleLang()" class="px-3 py-1.5 rounded-xl border border-slate-300/60 text-xs font-medium">🌐 \${isEn ? '繁體中文' : 'English'}</button>\` : ''}
-          </div>\`;
-        } else if (b.type === 'apikey') {
-          html += \`<div class="p-4 rounded-xl border \${card}">
-            <label class="block text-xs font-semibold mb-1.5">🔑 \${esc(isEn ? p.labelEn : p.labelZh)}</label>
-            <input type="password" value="\${esc(apiKey)}" placeholder="\${esc(p.placeholder)}"
-                   oninput="apiKey=this.value; localStorage.setItem('or_api_key', this.value)"
-                   class="w-full px-3 py-2 rounded-lg border text-xs \${inp}" />
-          </div>\`;
-        } else if (b.type === 'model') {
-          const list = p.models.split(',').map(x=>x.trim()).filter(Boolean);
-          if (!model && list.length) model = list[0];
-          html += \`<div class="p-4 rounded-xl border \${card}">
-            <label class="block text-xs font-semibold mb-1.5">🧠 \${esc(isEn ? p.labelEn : p.labelZh)}</label>
-            <select onchange="model=this.value" class="w-full px-3 py-2 rounded-lg border text-xs \${inp}">
-              \${list.map(m=>\`<option value="\${esc(m)}" \${m===model?'selected':''}>\${esc(m)}</option>\`).join('')}
-            </select>
-          </div>\`;
-        } else if (b.type === 'system') {
-          if (!systemPrompt) systemPrompt = p.defaultPrompt;
-          html += \`<div class="p-4 rounded-xl border \${card}">
-            <label class="block text-xs font-semibold mb-1.5">🎭 \${esc(isEn ? p.labelEn : p.labelZh)}</label>
-            <textarea rows="2" oninput="systemPrompt=this.value" class="w-full px-3 py-2 rounded-lg border text-xs \${inp}">\${esc(systemPrompt)}</textarea>
-          </div>\`;
-        } else if (b.type === 'prompts') {
-          const btns = p.buttons.split(',').map(x=>x.trim()).filter(Boolean);
-          html += \`<div class="p-4 rounded-xl border \${card}">
-            <div class="text-xs font-semibold mb-2">⚡ \${esc(isEn ? p.labelEn : p.labelZh)}</div>
-            <div class="flex flex-wrap gap-2">
-              \${btns.map(bt=>\`<button onclick="sendMsg('\${esc(bt)}')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="background:\${accent}">\${esc(bt)}</button>\`).join('')}
-            </div>
-          </div>\`;
-        } else if (b.type === 'params') {
-          html += \`<div class="p-4 rounded-xl border \${card}">
-            <div class="flex justify-between text-xs font-semibold mb-1"><span>🎛️ \${esc(isEn ? p.labelEn : p.labelZh)}</span><span id="tv">\${temperature}</span></div>
-            <input type="range" min="0" max="2" step="0.1" value="\${temperature}" oninput="temperature=parseFloat(this.value); document.getElementById('tv').textContent=this.value" class="w-full" />
-          </div>\`;
-        } else if (b.type === 'chat') {
-          html += \`<div class="rounded-2xl border \${card} overflow-hidden flex flex-col">
-            <div id="chatLog" class="p-4 space-y-3 h-96 overflow-y-auto text-sm">
-              <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs">\${esc(isEn ? p.welcomeEn : p.welcomeZh)}</div>
-              \${messages.map(m=>\`<div class="flex \${m.role==='user'?'justify-end':'justify-start'}">
-                <div class="max-w-[85%] px-4 py-2.5 rounded-2xl whitespace-pre-wrap text-xs \${m.role==='user'?'text-white':(isLight?'bg-slate-100 text-slate-800':'bg-slate-800')}"
-                     style="\${m.role==='user'?'background:'+accent:''}">\${esc(m.content)}</div>
-              </div>\`).join('')}
-            </div>
-            <div class="p-3 border-t \${isLight?'border-slate-200':'border-slate-800'} flex gap-2">
-              <input id="chatInp" type="text" placeholder="\${esc(isEn ? p.placeholderEn : p.placeholderZh)}"
-                     onkeydown="if(event.key==='Enter') sendMsg()" class="flex-1 px-3 py-2 rounded-xl border text-xs \${inp}" />
-              <button onclick="sendMsg()" class="px-4 py-2 rounded-xl text-xs font-semibold text-white" style="background:\${accent}">Send</button>
-            </div>
-          </div>\`;
-        } else if (b.type === 'footer') {
-          html += \`<div class="text-center text-xs opacity-60 py-2">\${esc(isEn ? p.textEn : p.textZh)}</div>\`;
-        }
-      });
+      if (layout === 'split') {
+        const headers = CONFIG.blocks.filter(b => b.type === 'header').map(renderBlock).join('');
+        const footers = CONFIG.blocks.filter(b => b.type === 'footer').map(renderBlock).join('');
+        const lefts = CONFIG.blocks.filter(b => ['apikey', 'model', 'kb', 'system', 'params', 'prompts', 'empty'].includes(b.type)).map(renderBlock).join('');
+        const rights = CONFIG.blocks.filter(b => b.type === 'chat').map(renderBlock).join('');
+        html = \`<div class="space-y-4">\${headers}<div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start"><div class="md:col-span-5 space-y-3">\${lefts}</div><div class="md:col-span-7 space-y-3">\${rights}</div></div>\${footers}</div>\`;
+      } else if (layout === 'card') {
+        html = \`<div class="p-6 rounded-3xl shadow-xl border \${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'} space-y-3">\${CONFIG.blocks.map(renderBlock).join('')}</div>\`;
+      } else {
+        html = \`<div class="space-y-3">\${CONFIG.blocks.map(renderBlock).join('')}</div>\`;
+      }
 
       document.getElementById('app').innerHTML = html;
       const log = document.getElementById('chatLog');
@@ -1012,34 +1339,41 @@
     async function sendMsg(preset) {
       const inp = document.getElementById('chatInp');
       const text = preset || (inp ? inp.value.trim() : '');
-      if (!text) return;
-      if (!apiKey) return alert(lang === 'en' ? 'Please enter your OpenRouter API Key!' : '請先輸入 OpenRouter API 金鑰！');
+      if (!text || isGen) return;
+      if (!apiKey) return alert(lang === 'zh' ? '請先輸入您的 OpenRouter API 金鑰！' : 'Please enter your OpenRouter API Key!');
       if (inp && !preset) inp.value = '';
 
       messages.push({ role: 'user', content: text });
-      messages.push({ role: 'assistant', content: '⏳ ...' });
+      messages.push({ role: 'assistant', content: '⏳ 思考中...' });
+      isGen = true;
+      abortCtrl = new AbortController();
       render();
 
       try {
         const payload = [];
-        if (systemPrompt) payload.push({ role: 'system', content: systemPrompt });
+        let sys = systemPrompt || '';
+        if (kbText) sys += '\\n\\n[Knowledge Base ('+kbName+')]:\\n' + kbText.slice(0,12000);
+        if (sys.trim()) payload.push({ role: 'system', content: sys.trim() });
         messages.slice(0, -1).forEach(m => payload.push(m));
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
+          signal: abortCtrl.signal,
           headers: {
-            'Authorization': 'Bearer ' + apiKey,
+            'Authorization': 'Bearer ' + toAscii(apiKey, ''),
             'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.href,
-            'X-Title': CONFIG.global.studioNameEn
+            'HTTP-Referer': toAscii(window.location.origin, 'https://openrouter.ai'),
+            'X-Title': toAscii(CONFIG.global.studioNameEn, 'AI Chat Studio')
           },
-          body: JSON.stringify({ model: model || 'openai/gpt-4o-mini', messages: payload, temperature })
+          body: JSON.stringify({ model: model || 'openrouter/free', messages: payload, temperature })
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
         messages[messages.length - 1].content = data.choices[0].message.content;
       } catch (e) {
-        messages[messages.length - 1].content = '❌ Error: ' + e.message;
+        messages[messages.length - 1].content = e.name === 'AbortError' ? (lang==='zh'?'⏹️ 已停止。':'⏹️ Stopped.') : ('❌ 錯誤：' + e.message);
       }
+      isGen = false;
+      abortCtrl = null;
       render();
     }
 
